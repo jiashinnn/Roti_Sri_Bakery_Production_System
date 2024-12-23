@@ -21,12 +21,30 @@ class Action
     function login()
     {
         extract($_POST);
-        $qry = $this->db->query("SELECT *,concat(user_fullName) as name FROM tbl_users where user_email = '" . $email . "' and user_password = '" . md5($password) . "' ");
+        $qry = $this->db->query("SELECT *, user_fullName as name FROM tbl_users where user_email = '" . $email . "' and user_password = '" . md5($password) . "' ");
+
+        // Add debug information
+        echo "Query executed: " . $qry->num_rows . " rows found\n";
+
         if ($qry->num_rows > 0) {
-            foreach ($qry->fetch_array() as $key => $value) {
-                if ($key != 'user_password' && !is_numeric($key))
+            $row = $qry->fetch_array();
+
+            // // Debug: Print what we got from database
+            // echo "Database row: ";
+            // print_r($row);
+
+            foreach ($row as $key => $value) {
+                if ($key != 'user_password' && !is_numeric($key)) {
                     $_SESSION['login_' . $key] = $value;
+                    // Debug: Print each session variable as it's set
+                    echo "Setting session: login_" . $key . " = " . $value . "\n";
+                }
             }
+
+            // Debug: Print final session state
+            // echo "Final session state: ";
+            // print_r($_SESSION);
+
             return 1;
         } else {
             return 3;

@@ -1,13 +1,16 @@
-<?php include('db_connect.php'); ?>
-<!-- Info boxes -->
+<?php 
+session_start();
+include('db_connect.php');
+
+?>
 
 <script>
-    var welcomeMessage = 'Welcome, User!';
+    var welcomeMessage = 'Welcome <?php echo isset($_SESSION['login_name']) ? $_SESSION['login_name'] : "User"; ?>!';
     alert(welcomeMessage);
 </script>
 
 <div class="row">
-    
+
 </div>
 
 <div class="col-12">

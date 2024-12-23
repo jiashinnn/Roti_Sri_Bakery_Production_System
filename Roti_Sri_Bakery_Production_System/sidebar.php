@@ -1,3 +1,11 @@
+<?php
+session_start();
+
+// Check if session variables exist before using them
+$login_name = isset($_SESSION['login_name']) ? $_SESSION['login_name'] : '';
+
+// Rest of your sidebar code using $login_name and $login_type
+?>
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
   <div class="dropdown">
     <a href="javascript:void(0)" class="brand-link dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
