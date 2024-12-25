@@ -8,4 +8,4 @@
 
 5. Ensure the username and password in your config/db_connection.php match your MySQL credentials.
 
-6. Open the .php file containing the session_start() function, right-click on it, and select "PHP Server: Reload Server" to execute the file and initiate the session.
+6. Open the .php file, right-click on it, and select "PHP Server: Reload Server" to execute the file and initiate the session.
