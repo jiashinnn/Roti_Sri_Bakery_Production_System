@@ -10,6 +10,6 @@
 
 4. Download the `production_db.sql` file from the database folder and import it into phpMyAdmin to set up the necessary database schema and data.
 
-5. Ensure the username and password in your `includes/db_connection.php` and `db_connect.php` match your MySQL credentials.
+5. Ensure the username and password in your `config/db_connection.php` match your MySQL credentials.
 
-6. Open the `.php file` containing the `session_start()` function, right-click on it, and select **PHP Server: Reload Server** to execute the file and initiate the session.
+6. Open the `.php file`, right-click on it, and select **PHP Server: Reload Server** to execute the file and initiate the session.
