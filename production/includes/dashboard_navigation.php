@@ -64,21 +64,7 @@ if (!isset($_SESSION['user_id'])) {
                 <li><a href="add_batch.php">Add New</a></li>
             </ul>
         </li>
-        <li class="<?php echo basename($_SERVER['PHP_SELF']) == 'about.php' ? 'active' : ''; ?>">
-            <a href="about.php"><i class="fas fa-info-circle"></i> About</a>
-        </li>
-        <li class="nav-item">
-            <a href="manage_account.php" class="nav-link">
-                <i class="fas fa-user-cog"></i>
-                <span>Manage Account</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="logout.php" class="nav-link">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
-            </a>
-        </li>
+        
     </ul>
 </div>
 
