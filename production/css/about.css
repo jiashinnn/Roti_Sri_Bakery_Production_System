@@ -1,6 +1,6 @@
 .navbar {
     background-color: #1a1a1a;
-    padding: 1rem 2rem;
+    padding: 1rem 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -38,15 +38,36 @@ main {
 
 /* Add styles for footer */
 footer {
-    background-color: #1a1a1a;
+    background-color: #333;
     color: white;
-    text-align: center;
-    padding: 1rem;
-    margin-top: 2rem;
+    padding: 1.5rem;
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 3rem;
+    padding-right: 3rem;
 }
 
+.footer-logo {
+    width: 200px;
+    height: auto;
+    margin: 0;
+    order: 2;
+}
+
+.footer-text {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    white-space: nowrap;
+    order: 1;
+} 
+
 .about-container {
-    padding: 2rem;
+    padding: 0;
     max-width: 1200px;
     margin: 0 auto;
 }

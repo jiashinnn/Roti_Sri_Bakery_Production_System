@@ -94,7 +94,7 @@
                             <i class="fas fa-map-marker-alt"></i>
                             <div>
                                 <h3>Location</h3>
-                                <p>123 Bakery Street, Kitchen District<br>Metro Manila, Philippines</p>
+                                <p>123 Bakery Street, Kitchen District<br>Alor Setar, Kedah</p>
                             </div>
                         </div>
                         <div class="contact-item">
@@ -127,7 +127,8 @@
 
     <!-- Footer -->
     <footer>
-        <p>&copy; 2024 YSLProduction | Production System</p>
+        <img src="assets/images/footer.png" alt="YSL Production Logo" class="footer-logo">
+        <p class="footer-text">&copy; 2024 YSLProduction | Production System</p>
     </footer>
 </body>
 
