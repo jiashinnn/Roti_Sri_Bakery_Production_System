@@ -202,11 +202,11 @@ function getSortIndicator($column) {
                                     </td>
                                     <td class="remarks-cell"><?php echo htmlspecialchars($batch['batch_remarks'] ?? '-'); ?></td>
                                     <td class="actions">
-                                        <a href="edit_batch.php?id=<?php echo $batch['batch_id']; ?>" class="edit-btn" title="Edit">
-                                            <i class="fas fa-edit"></i>
+                                        <a href="edit_batch.php?id=<?php echo $batch['batch_id']; ?>" class="action-btn edit-btn" title="Edit">
+                                            <i class="fas fa-edit"></i> Edit
                                         </a>
-                                        <button class="delete-btn" onclick="deleteBatch(<?php echo $batch['batch_id']; ?>)" title="Delete">
-                                            <i class="fas fa-trash"></i>
+                                        <button class="action-btn delete-btn" onclick="deleteBatch(<?php echo $batch['batch_id']; ?>)" title="Delete">
+                                            <i class="fas fa-trash"></i> Delete
                                         </button>
                                     </td>
                                 </tr>

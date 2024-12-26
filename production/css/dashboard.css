@@ -181,6 +181,7 @@ body.sidebar-collapsed .main-content {
         0 0 100px rgba(0, 0, 0, 0.02) inset;
     backdrop-filter: blur(5px);
     transition: all 0.3s ease;
+    cursor: pointer;
 }
 
 /* Hover effect */
@@ -190,6 +191,15 @@ body.sidebar-collapsed .main-content {
         0 15px 30px rgba(0, 0, 0, 0.12),
         0 8px 8px rgba(0, 0, 0, 0.15),
         0 0 120px rgba(0, 0, 0, 0.03) inset;
+    background-color: #f8f9fa;
+}
+
+.stat-card:hover .stat-icon i {
+    transform: scale(1.1);
+}
+
+.stat-icon i {
+    transition: transform 0.3s ease;
 }
 
 /* Update stat card icons */
@@ -372,4 +382,48 @@ body.sidebar-collapsed .dashboard-stats {
     margin-top: 0.5rem;
     width: 100%;
     align-self: flex-start;
+}
+
+/* Standard button styles for edit and delete actions */
+.action-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    text-decoration: none;
+}
+
+.edit-btn {
+    background-color: #28a745;
+    color: white;
+    
+}
+
+.edit-btn:hover {
+    background-color: #218838;
+}
+
+.delete-btn {
+    background-color: #dc3545;
+    color: white;
+}
+
+.delete-btn:hover {
+    background-color: #c82333;
+}
+
+/* Icon styles within buttons */
+.action-btn i {
+    font-size: 14px;
+    color: white;
+}
+
+/* Ensure icons stay white on hover */
+.action-btn:hover i {
+    color: white;
 } 

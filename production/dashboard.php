@@ -50,7 +50,7 @@ try {
         </div>
 
         <div class="dashboard-stats">
-            <div class="stat-card">
+            <div class="stat-card" onclick="window.location.href='view_recipes.php'">
                 <div class="stat-icon">
                     <i class="fas fa-book"></i>
                 </div>
@@ -60,7 +60,7 @@ try {
                 </div>
             </div>
 
-            <div class="stat-card">
+            <div class="stat-card" onclick="window.location.href='view_schedules.php'">
                 <div class="stat-icon">
                     <i class="fas fa-calendar-alt"></i>
                 </div>
@@ -70,7 +70,7 @@ try {
                 </div>
             </div>
 
-            <div class="stat-card">
+            <div class="stat-card" onclick="window.location.href='baker_info.php'">
                 <div class="stat-icon">
                     <i class="fas fa-users"></i>
                 </div>
@@ -80,7 +80,7 @@ try {
                 </div>
             </div>
 
-            <div class="stat-card">
+            <div class="stat-card" onclick="window.location.href='view_batches.php'">
                 <div class="stat-icon">
                     <i class="fas fa-boxes"></i>
                 </div>

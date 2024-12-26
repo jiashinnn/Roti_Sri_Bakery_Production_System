@@ -93,11 +93,11 @@ try {
                                         <td><?php echo date('M d, Y', strtotime($recipe['recipe_dateCreated'])); ?></td>
                                         <td><?php echo date('M d, Y', strtotime($recipe['recipe_dateUpdated'])); ?></td>
                                         <td class="actions">
-                                            <a href="edit_recipe.php?id=<?php echo $recipe['recipe_id']; ?>" class="edit-btn" title="Edit">
-                                                <i class="fas fa-edit"></i>
+                                            <a href="edit_recipe.php?id=<?php echo $recipe['recipe_id']; ?>" class="action-btn edit-btn" title="Edit">
+                                                <i class="fas fa-edit"></i> Edit
                                             </a>
-                                            <button class="delete-btn" onclick="deleteRecipe(<?php echo $recipe['recipe_id']; ?>)" title="Delete">
-                                                <i class="fas fa-trash"></i>
+                                            <button class="action-btn delete-btn" onclick="deleteRecipe(<?php echo $recipe['recipe_id']; ?>)" title="Delete">
+                                                <i class="fas fa-trash"></i> Delete
                                             </button>
                                         </td>
                                     </tr>
