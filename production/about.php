@@ -84,44 +84,6 @@
                     </div>
                 </div>
             </section>
-
-            <!-- Contact Section -->
-            <section class="about-section contact">
-                <h2>Contact Information</h2>
-                <div class="contact-grid">
-                    <div class="contact-info">
-                        <div class="contact-item">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <div>
-                                <h3>Location</h3>
-                                <p>123 Bakery Street, Kitchen District<br>Alor Setar, Kedah</p>
-                            </div>
-                        </div>
-                        <div class="contact-item">
-                            <i class="fas fa-phone"></i>
-                            <div>
-                                <h3>Phone</h3>
-                                <p>+63 123 456 7890</p>
-                            </div>
-                        </div>
-                        <div class="contact-item">
-                            <i class="fas fa-envelope"></i>
-                            <div>
-                                <h3>Email</h3>
-                                <p>info@yslproduction.com</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="business-hours">
-                        <h3><i class="fas fa-clock"></i> Business Hours</h3>
-                        <ul>
-                            <li><span>Monday - Friday:</span> 8:00 AM - 5:00 PM</li>
-                            <li><span>Saturday:</span> 8:00 AM - 12:00 PM</li>
-                            <li><span>Sunday:</span> Closed</li>
-                        </ul>
-                    </div>
-                </div>
-            </section>
         </div>
     </main>
 
