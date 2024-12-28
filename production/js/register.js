@@ -30,13 +30,6 @@ document.addEventListener('DOMContentLoaded', function () {
     form.addEventListener('submit', function (e) {
         e.preventDefault();
 
-        // Email validation (basic)
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email.value)) {
-            alert('Please enter a valid email address.');
-            return;
-        }
-
         // Phone number validation (9-15 digits)
         const phoneRegex = /^\d{9,15}$/;
         if (!phoneRegex.test(phoneNumber.value)) {
@@ -44,9 +37,23 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        // Email validation (basic)
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email.value)) {
+            alert('Please enter a valid email address.');
+            return;
+        }
+
         // Password validation
         if (password.value !== confirmPassword.value) {
             alert('Passwords do not match!');
+            return;
+        }
+
+        // Password validation (JavaScript)
+        const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+        if (!passwordRegex.test(password.value)) {
+            alert('Password must be at least 8 characters long and include at least ONE uppercase letter, ONE lowercase letter, ONE number, and ONE special character.');
             return;
         }
 

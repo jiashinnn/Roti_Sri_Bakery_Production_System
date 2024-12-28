@@ -4,7 +4,7 @@ require_once 'config/db_connection.php';
 
 $error_message = '';
 $success_message = '';
-$fullname = $contact = $email = $address = '';
+$fullname = $contact = $email = $address = $password = $confirm_password = '';
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -21,15 +21,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $confirm_password = $_POST['confirm_password'];
         $date_register = date('Y-m-d H:i:s');
 
-        if (!preg_match('/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).{8,}$/', $password)) {
-            throw new Exception("Password must be at least 8 characters long and include at least ONE uppercase letter, ONE lowercase letter, ONE number, and ONE special character.");
-        }
-
         // Check if email already exists
         $stmt = $conn->prepare("SELECT user_email FROM tbl_users WHERE user_email = ?");
         $stmt->execute([$email]);
 
         if ($stmt->rowCount() > 0) {
+            $email='';
             throw new Exception("Email already registered!");
         } else {
             // Hash the password
@@ -121,7 +118,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div class="form-group">
                     <label for="password">Password</label>
                     <div class="password-field">
-                        <input type="password" id="password" name="password" required>
+                        <input type="password" id="password" name="password" value="<?php echo htmlspecialchars($password); ?>" required>
                         <button type="button" class="toggle-password" data-target="password">
                             <i class="fas fa-eye"></i>
                         </button>
@@ -131,7 +128,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div class="form-group">
                     <label for="confirm_password">Confirm Password</label>
                     <div class="password-field">
-                        <input type="password" id="confirm_password" name="confirm_password" required>
+                        <input type="password" id="confirm_password" name="confirm_password" value="<?php echo htmlspecialchars($confirm_password); ?>"required>
                         <button type="button" class="toggle-password" data-target="confirm_password">
                             <i class="fas fa-eye"></i>
                         </button>
