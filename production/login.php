@@ -19,6 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['user_id'] = $user['user_id'];
             $_SESSION['user_fullName'] = $user['user_fullName'];
             $_SESSION['user_email'] = $user['user_email'];
+            $_SESSION['user_role'] = $user['user_role'];
 
             echo "<script>
                 alert('Login successful!');
