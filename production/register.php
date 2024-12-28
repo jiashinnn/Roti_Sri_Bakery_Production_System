@@ -4,6 +4,8 @@ require_once 'config/db_connection.php';
 
 $error_message = '';
 $success_message = '';
+$fullname = $contact = $email = $address = '';
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -19,16 +21,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $confirm_password = $_POST['confirm_password'];
         $date_register = date('Y-m-d H:i:s');
 
-        // Validate inputs
-        // if (!preg_match('/^\+?\d{10,15}$/', $contact)) {
-        //     throw new Exception("Invalid contact number format.");
+
+        // if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        //     throw new Exception("Invalid email format.");
         // }
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw new Exception("Invalid email format.");
-        }
-        if ($password !== $confirm_password) {
-            throw new Exception("Passwords do not match.");
-        }
+
         if (!preg_match('/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).{8,}$/', $password)) {
             throw new Exception("Password must be at least 8 characters long and include at least ONE uppercase letter, ONE lowercase letter, ONE number, and ONE special character.");
         }
@@ -108,22 +105,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <form method="POST" class="register-form">
                 <div class="form-group">
                     <label for="fullname">Full Name</label>
-                    <input type="text" id="fullname" name="fullname" required>
+                    <input type="text" id="fullname" name="fullname" value="<?php echo htmlspecialchars($fullname); ?>" required>
                 </div>
 
                 <div class="form-group">
                     <label for="contact">Contact Number</label>
-                    <input type="tel" id="contact" name="contact" required>
+                    <input type="tel" id="contact" name="contact" value="<?php echo htmlspecialchars($contact); ?>" required>
                 </div>
 
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required>
+                    <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($email); ?>" required>
                 </div>
 
                 <div class="form-group">
                     <label for="address">Address</label>
-                    <textarea id="address" name="address" required></textarea>
+                    <textarea id="address" name="address" required><?php echo htmlspecialchars($address); ?></textarea>
                 </div>
 
                 <div class="form-group">
