@@ -21,11 +21,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $confirm_password = $_POST['confirm_password'];
         $date_register = date('Y-m-d H:i:s');
 
-
-        // if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        //     throw new Exception("Invalid email format.");
-        // }
-
         if (!preg_match('/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).{8,}$/', $password)) {
             throw new Exception("Password must be at least 8 characters long and include at least ONE uppercase letter, ONE lowercase letter, ONE number, and ONE special character.");
         }
