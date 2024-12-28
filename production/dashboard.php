@@ -17,21 +17,24 @@ try {
     $stmt = $conn->query("SELECT COUNT(*) as total_schedules FROM tbl_schedule");
     $total_schedules = $stmt->fetch(PDO::FETCH_ASSOC)['total_schedules'];
 
-    // Get total bakers
-    $stmt = $conn->query("SELECT COUNT(*) as total_bakers FROM tbl_users WHERE user_role = 'Baker'");
-    $total_bakers = $stmt->fetch(PDO::FETCH_ASSOC)['total_bakers'];
+    // Only fetch total bakers if the user is an Admin
+    $total_bakers = null;
+    if ($_SESSION['user_role'] === 'Admin') {
+        $stmt = $conn->query("SELECT COUNT(*) as total_bakers FROM tbl_users WHERE user_role = 'Baker'");
+        $total_bakers = $stmt->fetch(PDO::FETCH_ASSOC)['total_bakers'];
+    }
 
     // Get total batches
     $stmt = $conn->query("SELECT COUNT(*) as total_batches FROM tbl_batches");
     $total_batches = $stmt->fetch(PDO::FETCH_ASSOC)['total_batches'];
-
-} catch(PDOException $e) {
+} catch (PDOException $e) {
     $error_message = "Error: " . $e->getMessage();
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -40,6 +43,7 @@ try {
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
+
 <body>
     <?php include 'includes/dashboard_navigation.php'; ?>
 
@@ -70,15 +74,17 @@ try {
                 </div>
             </div>
 
-            <div class="stat-card" onclick="window.location.href='baker_info.php'">
-                <div class="stat-icon">
-                    <i class="fas fa-users"></i>
+            <?php if ($_SESSION['user_role'] === 'Admin'): ?>
+                <div class="stat-card" onclick="window.location.href='baker_info.php'">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Total Bakers</h3>
+                        <p><?php echo $total_bakers; ?></p>
+                    </div>
                 </div>
-                <div class="stat-info">
-                    <h3>Total Bakers</h3>
-                    <p><?php echo $total_bakers; ?></p>
-                </div>
-            </div>
+            <?php endif; ?>
 
             <div class="stat-card" onclick="window.location.href='view_batches.php'">
                 <div class="stat-icon">
@@ -96,4 +102,5 @@ try {
 
     <script src="js/dashboard.js"></script>
 </body>
-</html> 
+
+</html>

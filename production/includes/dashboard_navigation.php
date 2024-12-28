@@ -35,14 +35,17 @@ if (!isset($_SESSION['user_id'])) {
             </a>
         </div>
     </div>
-    
+
     <ul class="sidebar-menu">
         <li class="<?php echo basename($_SERVER['PHP_SELF']) == 'dashboard.php' ? 'active' : ''; ?>">
             <a href="dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
         </li>
-        <li class="<?php echo basename($_SERVER['PHP_SELF']) == 'baker_info.php' ? 'active' : ''; ?>">
-            <a href="baker_info.php"><i class="fas fa-users"></i> Baker Info</a>
-        </li>
+        <!-- Show Baker Info only for Admins -->
+        <?php if ($_SESSION['user_role'] === 'Admin'): ?>
+            <li class="<?php echo basename($_SERVER['PHP_SELF']) == 'baker_info.php' ? 'active' : ''; ?>">
+                <a href="baker_info.php"><i class="fas fa-users"></i> Baker Info</a>
+            </li>
+        <?php endif; ?>
         <li class="has-submenu <?php echo in_array(basename($_SERVER['PHP_SELF']), ['view_recipes.php', 'add_recipe.php']) ? 'active' : ''; ?>">
             <a href="#"><i class="fas fa-book"></i> Recipe Management</a>
             <ul class="submenu">
@@ -64,11 +67,11 @@ if (!isset($_SESSION['user_id'])) {
                 <li><a href="add_batch.php">Add New</a></li>
             </ul>
         </li>
-        
+
     </ul>
 </div>
 
 <!-- Bottom Bar -->
 <div class="bottombar">
     <p>&copy; 2024 YSLProduction | Production System</p>
-</div> 
+</div>
