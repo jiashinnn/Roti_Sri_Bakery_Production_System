@@ -29,21 +29,23 @@
         <div class="about-container">
             <!-- Contact Section -->
             <section class="about-section contact">
-                <h2>Contact Information</h2>
+                <div class="contact-header">
+                    <img src="assets/images/big_logo_name_b.png" alt="YSL Logo" class="contact-logo">
+                </div>
                 <div class="contact-grid">
                     <div class="contact-info">
                         <div class="contact-item">
                             <i class="fas fa-map-marker-alt"></i>
                             <div>
                                 <h3>Location</h3>
-                                <p>123 Bakery Street, Kitchen District<br>Alor Setar, Kedah</p>
+                                <p>4037, Jalan Sultanah, Taman Rakyat<br> 05350 Alor Setar, Kedah</p>
                             </div>
                         </div>
                         <div class="contact-item">
                             <i class="fas fa-phone"></i>
                             <div>
                                 <h3>Phone</h3>
-                                <p>+63 123 456 7890</p>
+                                <p>012-3456789</p>
                             </div>
                         </div>
                         <div class="contact-item">

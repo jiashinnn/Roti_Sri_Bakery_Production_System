@@ -68,9 +68,9 @@ footer {
 } 
 
 .about-container {
-    padding: 0;
+    
     max-width: 1200px;
-    margin: 0 auto;
+    
 }
 
 .about-section {
@@ -84,13 +84,26 @@ footer {
     align-items: center;
 }
 
+.contact-header {
+    text-align: center; /* Center align the logo and title */
+    margin-bottom: 20px; /* Add spacing below the header */
+}
+
+.contact-logo {
+    width: 300px; /* Adjust the logo size */
+    height: auto; /* Maintain aspect ratio */
+    display: block; /* Ensure it stays on its own line */
+    margin: 0 auto; /* Center the logo horizontally */
+    margin-bottom: 10px; /* Space between logo and title */
+}
+
 .about-section.reverse {
     flex-direction: row-reverse;
 }
 
 .section-image {
     flex: 1;
-    max-width: 400px;
+    max-width: 300px;
 }
 
 .section-image img {
@@ -110,6 +123,10 @@ footer {
     color: #000;
 }
 
+.section-content p {
+    text-align: justify;
+}
+
 .mission-vision {
     display: grid;
     gap: 2rem;
@@ -127,6 +144,11 @@ footer {
 .mission i,
 .vision i {
     color: #007bff;
+}
+
+.mission p,
+.vision p {
+    text-align: justify;
 }
 
 /* Features Section */
@@ -190,12 +212,19 @@ footer {
 
 .contact-item i {
     font-size: 1.5rem;
-    color: #007bff;
+    color: #503f19;
 }
 
 .contact-item h3 {
     margin: 0;
     color: #000;
+    text-align: left;
+}
+
+.contact-item p {
+    margin: 0;
+    color: #666;
+    text-align: left;
 }
 
 .business-hours {
@@ -203,15 +232,18 @@ footer {
 }
 
 .business-hours h3 {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
+    margin: 0;
     color: #000;
+    text-align: left;
 }
 
 .business-hours i {
-    color: #007bff;
+    font-size: 1.5rem;
+    color: #503f19;
+}
+
+.business-hours h3 i {
+    margin-right: 10px;
 }
 
 .business-hours ul {
@@ -242,7 +274,8 @@ footer {
     }
 
     .section-image {
-        max-width: 100%;
+        max-width: 70%;
+
     }
 
     .contact-item {
