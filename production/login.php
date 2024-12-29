@@ -14,7 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->execute([$email]);
         $user = $stmt->fetch();
 
-        if ($user && md5($password) === $user['user_password']) {
+        if ($user && password_verify($password, $user['user_password'])) {
             // Password is correct, start a new session
             $_SESSION['user_id'] = $user['user_id'];
             $_SESSION['user_fullName'] = $user['user_fullName'];

@@ -4,10 +4,30 @@ document.addEventListener('DOMContentLoaded', function () {
     const confirmPassword = document.getElementById('confirm_password');
     const phoneNumber = document.getElementById('contact');
     const email = document.getElementById('email');
-    const toggleButtons = document.querySelectorAll('.toggle-password');
+    const toggleButton = document.querySelectorAll('.toggle-password');
+    const toggleButton2 = document.querySelectorAll('.toggle-password2');
 
     // Password visibility toggle
-    toggleButtons.forEach(button => {
+    toggleButton.forEach(button => {
+        button.addEventListener('click', function () {
+            const targetId = this.getAttribute('data-target');
+            const input = document.getElementById(targetId);
+            const icon = this.querySelector('i');
+
+            // Toggle password visibility
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    });
+
+    toggleButton2.forEach(button => {
         button.addEventListener('click', function () {
             const targetId = this.getAttribute('data-target');
             const input = document.getElementById(targetId);
@@ -47,13 +67,6 @@ document.addEventListener('DOMContentLoaded', function () {
         // Password validation
         if (password.value !== confirmPassword.value) {
             alert('Passwords do not match!');
-            return;
-        }
-
-        // Password validation (JavaScript)
-        const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).{8,}$/;
-        if (!passwordRegex.test(password.value)) {
-            alert('Password must be at least 8 characters long and include at least ONE uppercase letter, ONE lowercase letter, ONE number, and ONE special character.');
             return;
         }
 

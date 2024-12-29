@@ -56,26 +56,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if (!$responseKeys["success"]) {
             throw new Exception("CAPTCHA verification failed. Please try again.");
-        }
-
-        // Validate password complexity
-        if (!preg_match('/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).{8,}$/', $password)) {
-            throw new Exception("Password must be at least 8 characters long and include at least ONE uppercase letter, ONE lowercase letter, ONE number, and ONE special character.");
-        }
-
-        // Check if passwords match
-        if ($password !== $confirm_password) {
-            throw new Exception("Passwords do not match.");
-        }
+        }     
 
         // Check if email already exists
         $stmt = $conn->prepare("SELECT user_email FROM tbl_users WHERE user_email = ?");
         if (!$stmt) {
             throw new Exception("Database error: Failed to prepare statement.");
         }
-        
+
         $stmt->execute([$email]);
-        
+
         if ($stmt->rowCount() > 0) {
             throw new Exception("Email already registered!");
         }
@@ -85,11 +75,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Insert user data into the database
         $stmt = $conn->prepare("INSERT INTO tbl_users (user_fullName, user_contact, user_address, user_email, user_password, user_dateRegister) VALUES (?, ?, ?, ?, ?, ?)");
-        
+
         if (!$stmt) {
             throw new Exception("Database error: Failed to prepare statement.");
         }
-        
+
         $stmt->execute([$fullname, $contact, $address, $email, $hashed_password, $date_register]);
 
         // Show success message and redirect
@@ -97,10 +87,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             alert('Registration successful! Please login.');
             window.location.href = 'login.php';
         </script>";
-        
     } catch (Exception $e) {
-        // Display error message
-        $error_message = htmlspecialchars($e->getMessage());
+        // Show validation or general error as an alert
+        echo "<script>
+            alert('" . addslashes($e->getMessage()) . "');
+        </script>";
     }
 }
 ?>
@@ -115,36 +106,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/register.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <style>
-        /* Adjust spacing between form fields */
-        .form-group {
-            margin-bottom: 20px; /* Default spacing between fields */
-        }
-
-        #confirm_password {
-            margin-bottom: 40px; /* Increase spacing specifically for Confirm Password */
-        }
-
-        .g-recaptcha {
-            margin-top: 20px; /* Add spacing above reCAPTCHA */
-        }
-
-        /* Style the Register button */
-        .register-submit-btn {
-            font-size: 18px; /* Increase font size */
-            padding: 10px 20px; /* Add padding for a larger button */
-            background-color: #4CAF50; /* Green background */
-            color: white; /* White text */
-            border: none; /* Remove border */
-            border-radius: 5px; /* Rounded corners */
-            cursor: pointer; /* Pointer cursor on hover */
-            transition: background-color 0.3s ease; /* Smooth hover effect */
-        }
-
-        .register-submit-btn:hover {
-            background-color: #45a049; /* Darker green on hover */
-        }
-    </style>
 </head>
 
 <body>
@@ -172,58 +133,71 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php if (!empty($success_message)): ?>
                 <div class="success-message"><?php echo htmlspecialchars($success_message); ?></div>
             <?php endif; ?>
-            
+
             <!-- Registration Form -->
-            <form method="POST" action="">
+            <form method="POST" action="" class="register-form">
                 <!-- Full Name -->
                 <div class="form-group">
                     <label for="fullname">Full Name</label>
-                    <input type="text" id="fullname" name="fullname" required>
+                    <input type="text" id="fullname" name="fullname" value="<?php echo htmlspecialchars($fullname); ?>"required>
                 </div>
 
                 <!-- Contact Number -->
                 <div class="form-group">
                     <label for="contact">Contact Number</label>
-                    <input type="tel" id="contact" name="contact" required>
+                    <input type="tel" id="contact" name="contact" value="<?php echo htmlspecialchars($contact); ?>"required>
                 </div>
 
                 <!-- Email -->
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required>
+                    <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($email); ?>"required>
                 </div>
 
                 <!-- Address -->
                 <div class='form-group'>
                     <label for='address'>Address</label>
-                    <textarea id='address' name='address' required></textarea>
+                    <textarea id='address' name='address' required><?php echo htmlspecialchars($address); ?></textarea>
                 </div>
 
                 <!-- Password -->
                 <div class='form-group'>
                     <label for='password'>Password</label>
-                    <input type='password' id='password' name='password'
-                        pattern='(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).{8,}'
-                        title='Password must contain at least 8 characters, including uppercase, lowercase, a number, and a special character.'
-                        required minlength='8'>
+                    <div class="password-field">
+                        <input type="password" id="password" name="password"
+                            pattern="(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).{8,}"
+                            title="Password must contain at least 8 characters, including uppercase, lowercase, a number, and a special character."
+                            required minlength="8">
+                        <button type="button" class="toggle-password" data-target="password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
 
+
                 <!-- Confirm Password -->
-                <div class='form-group'>
-                    <label for='confirm_password'>Confirm Password</label>
-                    <input type='password' id='confirm_password' name='confirm_password' required />
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <div class="password-field">
+                        <input type="password" id="confirm_password" name="confirm_password" required>
+                        <button type="button" class="toggle-password2" data-target="confirm_password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Google reCAPTCHA -->
                 <div class='g-recaptcha' data-sitekey='6LdfV6gqAAAAACimut4s48YkS-jpSku0IGwCo76j'></div>
 
                 <!-- Submit Button -->
-                <button type='submit' class='register-submit-btn'>Register</button>
+                <button type='submit' id='register-button' class='register-submit-btn'>Register</button>
 
             </form>
 
-            <!-- Include Google reCAPTCHA JavaScript -->
+            <!-- Include Google reCAPTCHA JavaScript and register.js -->
             <script src='https://www.google.com/recaptcha/api.js' async defer></script>
+            <script src="js/register.js"></script>
+        </div>
 
     </main>
 

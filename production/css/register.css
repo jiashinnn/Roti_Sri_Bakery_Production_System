@@ -26,6 +26,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    margin-bottom: 20px; /* Default spacing between fields */
 }
 
 .form-group label {
@@ -55,6 +56,10 @@
     background-color: rgba(255, 255, 255, 0.15);
 }
 
+#confirm_password {
+    margin-bottom: 40px; /* Increase spacing specifically for Confirm Password */
+}
+
 .register-submit-btn {
     padding: 12px 30px;
     font-size: 16px;
@@ -68,8 +73,8 @@
 }
 
 .register-submit-btn:hover {
-    background-color: white;
-    color: #181338;
+    background-color: #45a049;
+    color: #dfdcf1;
 }
 
 .password-field {
@@ -79,20 +84,32 @@
 }
 
 .password-field input {
-    flex: 1;
-    padding-right: 40px; /* Space for the eye icon */
+    width: 100%;
+    padding-right: 40px; /* Make space for the eye icon */
 }
 
 .toggle-password {
     position: absolute;
     right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
     background: none;
     border: none;
-    color: rgba(255, 255, 255, 0.7);
     cursor: pointer;
     padding: 5px;
-    font-size: 16px;
-    transition: color 0.3s ease;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.toggle-password2 {
+    position: absolute;
+    right: 10px;
+    top: 30%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    color: rgba(255, 255, 255, 0.7);
 }
 
 .toggle-password:hover {
@@ -101,6 +118,10 @@
 
 .toggle-password:focus {
     outline: none;
+}
+
+.g-recaptcha {
+    margin-top: 20px; /* Add spacing above reCAPTCHA */
 }
 
 .error-message,
