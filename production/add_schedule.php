@@ -110,7 +110,7 @@ try {
 
                 <div class="form-group">
                     <label for="quantity">Quantity to Produce</label>
-                    <input type="number" id="quantity" name="quantity" step="0.01" required>
+                    <input type="number" id="quantity" name="quantity" step="0.01" min="0.01" required>
                 </div>
             </div>
 
