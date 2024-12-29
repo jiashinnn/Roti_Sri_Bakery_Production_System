@@ -35,22 +35,3 @@ function removeIngredient(button) {
         row.remove();
     }
 } 
-
-// document.querySelector(".recipe-form").addEventListener("submit", function (e) {
-//     const batchSize = parseFloat(document.getElementById("batch_size").value);
-//     if (isNaN(batchSize) || batchSize <= 0) {
-//         alert("Batch size must be greater than 0.");
-//         e.preventDefault();
-//         return;
-//     }
-
-//     const ingredientQuantities = document.querySelectorAll("input[name='ingredient_quantity[]']");
-//     for (const quantityInput of ingredientQuantities) {
-//         const quantity = parseFloat(quantityInput.value);
-//         if (isNaN(quantity) || quantity <= 0) {
-//             alert("Ingredient quantities must be greater than 0.");
-//             e.preventDefault();
-//             return;
-//         }
-//     }
-// });
