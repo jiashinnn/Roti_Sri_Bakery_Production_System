@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 25, 2024 at 06:00 PM
+-- Generation Time: Dec 29, 2024 at 04:49 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -42,7 +42,7 @@ CREATE TABLE `tbl_batches` (
 --
 
 INSERT INTO `tbl_batches` (`batch_id`, `recipe_id`, `schedule_id`, `batch_startTime`, `batch_endTime`, `batch_status`, `batch_remarks`) VALUES
-(1, 9, 3, '2024-12-26 12:20:00', '2024-12-26 14:20:00', 'In Progress', 'Abby is responsible for baking');
+(3, 9, 3, '2024-12-29 01:45:00', '2024-12-29 23:45:00', 'Pending', 'Abby is responsible to overview');
 
 -- --------------------------------------------------------
 
@@ -63,7 +63,8 @@ CREATE TABLE `tbl_batch_assignments` (
 --
 
 INSERT INTO `tbl_batch_assignments` (`ba_id`, `batch_id`, `user_id`, `ba_task`, `ba_status`) VALUES
-(2, 1, 6, 'Baking', 'Pending');
+(5, 3, 15, 'Mixing', 'Pending'),
+(6, 3, 16, 'Decorating', 'Pending');
 
 -- --------------------------------------------------------
 
@@ -151,7 +152,8 @@ CREATE TABLE `tbl_schedule_assignments` (
 --
 
 INSERT INTO `tbl_schedule_assignments` (`sa_id`, `schedule_id`, `user_id`, `sa_dateAssigned`) VALUES
-(4, 3, 5, '2024-12-25 15:51:00');
+(5, 3, 15, '2024-12-29 15:44:23'),
+(6, 3, 14, '2024-12-29 15:44:23');
 
 -- --------------------------------------------------------
 
@@ -175,12 +177,12 @@ CREATE TABLE `tbl_users` (
 --
 
 INSERT INTO `tbl_users` (`user_id`, `user_fullName`, `user_contact`, `user_address`, `user_email`, `user_password`, `user_dateRegister`, `user_role`) VALUES
-(1, 'Admin', '0123456789', 'Roti Sri Bakery', 'admin@gmail.com', '202cb962ac59075b964b07152d234b70', '2024-12-21 10:37:44', 'Admin'),
-(2, 'aurora', '01234', 'Kedah', 'aurora@gmail.com', '202cb962ac59075b964b07152d234b70', '2024-12-21 11:53:02', 'Baker'),
-(3, 's', 's', 's', 'a@gmail.com', '202cb962ac59075b964b07152d234b70', '2024-12-22 21:53:32', 'Baker'),
-(4, 'LIM JIA SHIN', '0186686142', 'LOT 4026-7, LORONG AIK HWA 6, BUKIT BAKRI, 84200 MUAR, JOHOR', 'a@gmail.com', '202cb962ac59075b964b07152d234b70', '2024-12-22 22:13:34', 'Baker'),
-(5, 'bbb', '123456789', 'bbb', 'bbb@gmail.com', '202cb962ac59075b964b07152d234b70', '2024-12-25 16:31:43', 'Baker'),
-(6, 'Abby', '0123456789', 'Kedah', 'abby@gmail.com', '25d55ad283aa400af464c76d713c07ad', '2024-12-25 12:01:35', 'Baker');
+(13, 'Admin', '0123456789', 'Roti Sri Bakery', 'Admin@gmail.com', '$2y$10$ydcLcf5duwhxgjXK.k/mBu0ikQTz14zXVDzmcx25BOhUsNifs5QB.', '2024-12-29 16:36:59', 'Admin'),
+(14, 'Alicia', '0123456789', 'Kedah', 'alicia@gmail.com', '$2y$10$AIa/Or4OCSbPpO6Ii2/FTOuElG6gNMrMurzMcaBBxHl0nZGz6pA.2', '2024-12-29 16:38:47', 'Baker'),
+(15, 'Abby', '0123456789', 'Kedah', 'abby@gmail.com', '$2y$10$wHP8eBIK2iFIPznx4cop5ue5wlEBw4HYxU0is3ogQw5DeSLrvA8Re', '2024-12-29 16:39:21', 'Baker'),
+(16, 'Aurora', '0123456789', 'Kedah', 'aurora@gmail.com', '$2y$10$EfeC4D4e6C2XFTUMbJjxXO.MJ2OvHtSwpYGztV.Hh5WxSxwcXdbA.', '2024-12-29 16:40:12', 'Baker'),
+(17, 'Irdina', '0123456789', 'Kedah', 'irdina@gmail.com', '$2y$10$NpmQZqhTTp4YOGvN4DGNkeoKdZ2oiB6UJGrI4f/cCStUpNt2CWbVK', '2024-12-29 16:41:00', 'Baker'),
+(18, 'Alia', '0123456789', 'Kedah', 'alia@gmail.com', '$2y$10$px1H5SauACBIugoCce/aPehQol8A7tS9w6qza4W/LB7OUQv4apSBO', '2024-12-29 16:42:41', 'Baker');
 
 --
 -- Indexes for dumped tables
@@ -244,13 +246,13 @@ ALTER TABLE `tbl_users`
 -- AUTO_INCREMENT for table `tbl_batches`
 --
 ALTER TABLE `tbl_batches`
-  MODIFY `batch_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `batch_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `tbl_batch_assignments`
 --
 ALTER TABLE `tbl_batch_assignments`
-  MODIFY `ba_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `ba_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `tbl_ingredients`
@@ -274,13 +276,13 @@ ALTER TABLE `tbl_schedule`
 -- AUTO_INCREMENT for table `tbl_schedule_assignments`
 --
 ALTER TABLE `tbl_schedule_assignments`
-  MODIFY `sa_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `sa_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `tbl_users`
 --
 ALTER TABLE `tbl_users`
-  MODIFY `user_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `user_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- Constraints for dumped tables
