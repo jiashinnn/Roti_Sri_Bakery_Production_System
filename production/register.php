@@ -1,18 +1,19 @@
 <?php
+// Start the session and include database connection
 session_start();
 require_once 'config/db_connection.php';
 
+// Initialize error and success messages
 $error_message = '';
 $success_message = '';
+
+// Initialize input variables
 $fullname = $contact = $email = $address = $password = $confirm_password = '';
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
+// Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
-        // Get form data and sanitize inputs
+        // Retrieve and sanitize inputs
         $fullname = htmlspecialchars(trim($_POST['fullname']));
         $contact = htmlspecialchars(trim($_POST['contact']));
         $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
@@ -21,42 +22,88 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $confirm_password = $_POST['confirm_password'];
         $date_register = date('Y-m-d H:i:s');
 
+        // Google reCAPTCHA secret key
+        $secretKey = '6LdfV6gqAAAAABXRwPWBUejeSxE15Dys8D8OBbXk'; // Replace with your secret key
+        $captchaResponse = $_POST['g-recaptcha-response'];
+
+        // Verify CAPTCHA response with Google's API
+        if (empty($captchaResponse)) {
+            throw new Exception("Please complete the CAPTCHA verification.");
+        }
+
+        $url = 'https://www.google.com/recaptcha/api/siteverify';
+        $data = [
+            'secret' => $secretKey,
+            'response' => $captchaResponse,
+            'remoteip' => $_SERVER['REMOTE_ADDR']
+        ];
+
+        // Send POST request to Google's API
+        $options = [
+            'http' => [
+                'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+                'method'  => 'POST',
+                'content' => http_build_query($data)
+            ]
+        ];
+        $context  = stream_context_create($options);
+        $result = file_get_contents($url, false, $context);
+        if ($result === false) {
+            throw new Exception("Failed to verify CAPTCHA. Please try again.");
+        }
+
+        $responseKeys = json_decode($result, true);
+
+        if (!$responseKeys["success"]) {
+            throw new Exception("CAPTCHA verification failed. Please try again.");
+        }
+
+        // Validate password complexity
+        if (!preg_match('/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).{8,}$/', $password)) {
+            throw new Exception("Password must be at least 8 characters long and include at least ONE uppercase letter, ONE lowercase letter, ONE number, and ONE special character.");
+        }
+
+        // Check if passwords match
+        if ($password !== $confirm_password) {
+            throw new Exception("Passwords do not match.");
+        }
+
         // Check if email already exists
         $stmt = $conn->prepare("SELECT user_email FROM tbl_users WHERE user_email = ?");
-        $stmt->execute([$email]);
-
-        if ($stmt->rowCount() > 0) {
-            $email='';
-            throw new Exception("Email already registered!");
-        } else {
-            // Hash the password
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
-            // Insert into database
-            $stmt = $conn->prepare("INSERT INTO tbl_users (user_fullName, user_contact, user_address, user_email, user_password, user_dateRegister) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$fullname, $contact, $address, $email, $hashed_password, $date_register]);
-
-            // Show success message as an alert
-            echo "<script>
-                alert('Registration successful! Please login.');
-                window.location.href = 'login.php';
-            </script>";
-            exit;
+        if (!$stmt) {
+            throw new Exception("Database error: Failed to prepare statement.");
         }
-    } catch (PDOException $e) {
-        // Show database error as an alert
+        
+        $stmt->execute([$email]);
+        
+        if ($stmt->rowCount() > 0) {
+            throw new Exception("Email already registered!");
+        }
+
+        // Hash the password
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+        // Insert user data into the database
+        $stmt = $conn->prepare("INSERT INTO tbl_users (user_fullName, user_contact, user_address, user_email, user_password, user_dateRegister) VALUES (?, ?, ?, ?, ?, ?)");
+        
+        if (!$stmt) {
+            throw new Exception("Database error: Failed to prepare statement.");
+        }
+        
+        $stmt->execute([$fullname, $contact, $address, $email, $hashed_password, $date_register]);
+
+        // Show success message and redirect
         echo "<script>
-            alert('Database Error: " . addslashes($e->getMessage()) . "');
+            alert('Registration successful! Please login.');
+            window.location.href = 'login.php';
         </script>";
+        
     } catch (Exception $e) {
-        // Show validation or general error as an alert
-        echo "<script>
-            alert('" . addslashes($e->getMessage()) . "');
-        </script>";
+        // Display error message
+        $error_message = htmlspecialchars($e->getMessage());
     }
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -68,6 +115,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/register.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* Adjust spacing between form fields */
+        .form-group {
+            margin-bottom: 20px; /* Default spacing between fields */
+        }
+
+        #confirm_password {
+            margin-bottom: 40px; /* Increase spacing specifically for Confirm Password */
+        }
+
+        .g-recaptcha {
+            margin-top: 20px; /* Add spacing above reCAPTCHA */
+        }
+
+        /* Style the Register button */
+        .register-submit-btn {
+            font-size: 18px; /* Increase font size */
+            padding: 10px 20px; /* Add padding for a larger button */
+            background-color: #4CAF50; /* Green background */
+            color: white; /* White text */
+            border: none; /* Remove border */
+            border-radius: 5px; /* Rounded corners */
+            cursor: pointer; /* Pointer cursor on hover */
+            transition: background-color 0.3s ease; /* Smooth hover effect */
+        }
+
+        .register-submit-btn:hover {
+            background-color: #45a049; /* Darker green on hover */
+        }
+    </style>
 </head>
 
 <body>
@@ -86,65 +163,76 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </header>
 
     <main>
+        <!-- Registration Form -->
         <div class="register-container">
             <h2>Create Account</h2>
-            <?php if ($error_message): ?>
+            <?php if (!empty($error_message)): ?>
                 <div class="error-message"><?php echo htmlspecialchars($error_message); ?></div>
             <?php endif; ?>
-            <?php if ($success_message): ?>
+            <?php if (!empty($success_message)): ?>
                 <div class="success-message"><?php echo htmlspecialchars($success_message); ?></div>
             <?php endif; ?>
-            <form method="POST" class="register-form">
+            
+            <!-- Registration Form -->
+            <form method="POST" action="">
+                <!-- Full Name -->
                 <div class="form-group">
                     <label for="fullname">Full Name</label>
-                    <input type="text" id="fullname" name="fullname" value="<?php echo htmlspecialchars($fullname); ?>" required>
+                    <input type="text" id="fullname" name="fullname" required>
                 </div>
 
+                <!-- Contact Number -->
                 <div class="form-group">
                     <label for="contact">Contact Number</label>
-                    <input type="tel" id="contact" name="contact" value="<?php echo htmlspecialchars($contact); ?>" required>
+                    <input type="tel" id="contact" name="contact" required>
                 </div>
 
+                <!-- Email -->
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($email); ?>" required>
+                    <input type="email" id="email" name="email" required>
                 </div>
 
-                <div class="form-group">
-                    <label for="address">Address</label>
-                    <textarea id="address" name="address" required><?php echo htmlspecialchars($address); ?></textarea>
+                <!-- Address -->
+                <div class='form-group'>
+                    <label for='address'>Address</label>
+                    <textarea id='address' name='address' required></textarea>
                 </div>
 
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <div class="password-field">
-                        <input type="password" id="password" name="password" value="<?php echo htmlspecialchars($password); ?>" required>
-                        <button type="button" class="toggle-password" data-target="password">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
+                <!-- Password -->
+                <div class='form-group'>
+                    <label for='password'>Password</label>
+                    <input type='password' id='password' name='password'
+                        pattern='(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).{8,}'
+                        title='Password must contain at least 8 characters, including uppercase, lowercase, a number, and a special character.'
+                        required minlength='8'>
                 </div>
 
-                <div class="form-group">
-                    <label for="confirm_password">Confirm Password</label>
-                    <div class="password-field">
-                        <input type="password" id="confirm_password" name="confirm_password" value="<?php echo htmlspecialchars($confirm_password); ?>"required>
-                        <button type="button" class="toggle-password" data-target="confirm_password">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
+                <!-- Confirm Password -->
+                <div class='form-group'>
+                    <label for='confirm_password'>Confirm Password</label>
+                    <input type='password' id='confirm_password' name='confirm_password' required />
                 </div>
 
-                <button type="submit" class="register-submit-btn">Register</button>
+                <!-- Google reCAPTCHA -->
+                <div class='g-recaptcha' data-sitekey='6LdfV6gqAAAAACimut4s48YkS-jpSku0IGwCo76j'></div>
+
+                <!-- Submit Button -->
+                <button type='submit' class='register-submit-btn'>Register</button>
+
             </form>
-        </div>
+
+            <!-- Include Google reCAPTCHA JavaScript -->
+            <script src='https://www.google.com/recaptcha/api.js' async defer></script>
+
     </main>
 
+    <!-- Footer -->
     <footer>
-        <p class="footer-text">&copy; 2024 YSLProduction | Production System</p>
-        <img src="assets/images/footer.png" alt="YSL Production Logo" class="footer-logo">
+        <p>&copy; 2024 YSLProduction | Production System</p>
+        <img src='assets/images/footer.png' alt='YSL Production Logo'>
     </footer>
-    <script src="js/register.js"></script>
+
 </body>
 
 </html>
