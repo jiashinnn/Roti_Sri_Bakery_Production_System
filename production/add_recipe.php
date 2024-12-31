@@ -2,7 +2,7 @@
 session_start();
 require_once 'config/db_connection.php';
 
-// Check if user is logged in and is admin
+// Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
@@ -21,16 +21,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $recipe_category = htmlspecialchars(trim($_POST['recipe_category']));
         $recipe_batchSize = floatval($_POST['batch_size']);
         $recipe_unitOfMeasure = htmlspecialchars(trim($_POST['unit_of_measure']));
+        $recipe_instructions = htmlspecialchars(trim($_POST['recipe_instructions']));
 
-        // Insert recipe first
-        $stmt = $conn->prepare("INSERT INTO tbl_recipe (recipe_name, recipe_category, recipe_batchSize, recipe_unitOfMeasure) 
-                              VALUES (?, ?, ?, ?)");
-        $stmt->execute([$recipe_name, $recipe_category, $recipe_batchSize, $recipe_unitOfMeasure]);
-
-        // Get the ID of the recipe we just inserted
+        // Insert recipe
+        $stmt = $conn->prepare("INSERT INTO tbl_recipe (recipe_name, recipe_category, recipe_batchSize, recipe_unitOfMeasure, recipe_instructions) 
+                              VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$recipe_name, $recipe_category, $recipe_batchSize, $recipe_unitOfMeasure, $recipe_instructions]);
+        
         $recipe_id = $conn->lastInsertId();
 
-        // Now insert ingredients using the recipe_id
+        // Insert ingredients
         $ingredient_names = $_POST['ingredient_name'];
         $ingredient_quantities = $_POST['ingredient_quantity'];
         $ingredient_units = $_POST['ingredient_unit'];
@@ -40,19 +40,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         foreach ($ingredient_names as $key => $name) {
             if (!empty($name)) {
-                $ingredient_quantity = floatval($ingredient_quantities[$key]);
                 $stmt->execute([
-                    $recipe_id,  // First parameter
-                    htmlspecialchars(trim($name)),  // Second parameter
-                    $ingredient_quantity, // Third parameter
-                    htmlspecialchars(trim($ingredient_units[$key]))  // Fourth parameter
+                    $recipe_id,
+                    htmlspecialchars(trim($name)),
+                    floatval($ingredient_quantities[$key]),
+                    htmlspecialchars(trim($ingredient_units[$key]))
                 ]);
             }
         }
 
         $conn->commit();
         $success_message = "Recipe added successfully!";
-    } catch (PDOException $e) {
+        
+    } catch(PDOException $e) {
         $conn->rollBack();
         $error_message = "Error: " . $e->getMessage();
     }
@@ -61,7 +61,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -71,7 +70,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="css/add_recipe.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
-
 <body>
     <?php include 'includes/dashboard_navigation.php'; ?>
 
@@ -84,6 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <?php if ($success_message): ?>
             <div class="alert success"><?php echo $success_message; ?></div>
         <?php endif; ?>
+
         <?php if ($error_message): ?>
             <div class="alert error"><?php echo $error_message; ?></div>
         <?php endif; ?>
@@ -110,7 +109,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="batch_size">Batch Size</label>
-                        <input type="number" id="batch_size" name="batch_size" step="0.01" min="0.01" required>
+                        <input type="number" id="batch_size" name="batch_size" step="0.01" required>
                     </div>
                     <div class="form-group">
                         <label for="unit_of_measure">Unit of Measure</label>
@@ -124,6 +123,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
             </div>
 
+            <!-- Recipe Instructions Section -->
+            <div class="form-section">
+                <h2>Recipe Instructions</h2>
+                <div class="form-group">
+                    <label for="recipe_instructions">Instructions (Enter each step on a new line)</label>
+                    <textarea 
+                        id="recipe_instructions" 
+                        name="recipe_instructions" 
+                        rows="10" 
+                        placeholder="1. First step
+2. Second step
+3. Third step
+4. Fourth step..."
+                        required
+                    ></textarea>
+                    <small class="form-text">Enter each instruction step on a new line, preferably numbered.</small>
+                </div>
+            </div>
+
             <div class="form-section">
                 <h2>Ingredients</h2>
                 <div id="ingredients-container">
@@ -134,7 +152,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </div>
                         <div class="form-group">
                             <label>Quantity</label>
-                            <input type="number" name="ingredient_quantity[]" step="0.01" min="0.01" required>
+                            <input type="number" name="ingredient_quantity[]" step="0.01" required>
                         </div>
                         <div class="form-group">
                             <label>Unit</label>
@@ -159,6 +177,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <div class="form-actions">
                 <button type="submit" class="submit-btn">Save Recipe</button>
+                <a href="view_recipes.php" class="cancel-btn">Cancel</a>
             </div>
         </form>
     </main>
@@ -166,5 +185,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <script src="js/dashboard.js"></script>
     <script src="js/add_recipe.js"></script>
 </body>
-
 </html>

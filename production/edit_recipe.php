@@ -45,32 +45,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
         $conn->beginTransaction();
 
-        // Get recipe details
-        $recipe_name = htmlspecialchars(trim($_POST['recipe_name']));
-        $recipe_category = htmlspecialchars(trim($_POST['recipe_category']));
-        $recipe_batchSize = floatval($_POST['batch_size']);
-        $recipe_unitOfMeasure = htmlspecialchars(trim($_POST['unit_of_measure']));
-
-        // Update recipe
+        // Update recipe details
         $stmt = $conn->prepare("UPDATE tbl_recipe SET 
             recipe_name = ?, 
             recipe_category = ?, 
             recipe_batchSize = ?, 
-            recipe_unitOfMeasure = ? 
+            recipe_unitOfMeasure = ?,
+            recipe_instructions = ?
             WHERE recipe_id = ?");
-        $stmt->execute([$recipe_name, $recipe_category, $recipe_batchSize, $recipe_unitOfMeasure, $recipe_id]);
+        
+        $stmt->execute([
+            htmlspecialchars(trim($_POST['recipe_name'])),
+            htmlspecialchars(trim($_POST['recipe_category'])),
+            floatval($_POST['batch_size']),
+            htmlspecialchars(trim($_POST['unit_of_measure'])),
+            htmlspecialchars(trim($_POST['recipe_instructions'])),
+            $recipe_id
+        ]);
 
         // Delete existing ingredients
         $stmt = $conn->prepare("DELETE FROM tbl_ingredients WHERE recipe_id = ?");
         $stmt->execute([$recipe_id]);
 
         // Insert updated ingredients
+        $stmt = $conn->prepare("INSERT INTO tbl_ingredients (recipe_id, ingredient_name, ingredient_quantity, ingredient_unitOfMeasure) VALUES (?, ?, ?, ?)");
+        
         $ingredient_names = $_POST['ingredient_name'];
         $ingredient_quantities = $_POST['ingredient_quantity'];
         $ingredient_units = $_POST['ingredient_unit'];
-
-        $stmt = $conn->prepare("INSERT INTO tbl_ingredients (recipe_id, ingredient_name, ingredient_quantity, ingredient_unitOfMeasure) 
-                              VALUES (?, ?, ?, ?)");
 
         foreach ($ingredient_names as $key => $name) {
             if (!empty($name)) {
@@ -85,8 +87,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $conn->commit();
         $success_message = "Recipe updated successfully!";
-
-        // Refresh recipe and ingredients data
+        
+        // Refresh recipe data
         $stmt = $conn->prepare("SELECT * FROM tbl_recipe WHERE recipe_id = ?");
         $stmt->execute([$recipe_id]);
         $recipe = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -125,6 +127,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <?php if ($success_message): ?>
             <div class="alert success"><?php echo $success_message; ?></div>
         <?php endif; ?>
+
         <?php if ($error_message): ?>
             <div class="alert error"><?php echo $error_message; ?></div>
         <?php endif; ?>
@@ -162,6 +165,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <option value="g" <?php echo $recipe['recipe_unitOfMeasure'] == 'g' ? 'selected' : ''; ?>>Grams</option>
                         </select>
                     </div>
+                </div>
+            </div>
+
+            <!-- Add Recipe Instructions Section -->
+            <div class="form-section">
+                <h2>Recipe Instructions</h2>
+                <div class="form-group">
+                    <label for="recipe_instructions">Instructions (Enter each step on a new line)</label>
+                    <textarea 
+                        id="recipe_instructions" 
+                        name="recipe_instructions" 
+                        rows="10" 
+                        required
+                    ><?php echo htmlspecialchars($recipe['recipe_instructions']); ?></textarea>
+                    <small class="form-text">Enter each instruction step on a new line, preferably numbered.</small>
                 </div>
             </div>
 

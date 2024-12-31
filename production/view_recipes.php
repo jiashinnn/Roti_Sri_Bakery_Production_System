@@ -70,6 +70,7 @@ try {
                                     <th>Category</th>
                                     <th>Batch Size</th>
                                     <th>Ingredients</th>
+                                    <th>Instructions</th>
                                     <th>Date Created</th>
                                     <th>Last Updated</th>
                                     <th>Actions</th>
@@ -88,6 +89,11 @@ try {
                                         <td>
                                             <button class="view-ingredients" onclick="viewIngredients(<?php echo $recipe['recipe_id']; ?>)">
                                                 View (<?php echo count($recipe_ingredients[$recipe['recipe_id']]); ?>)
+                                            </button>
+                                        </td>
+                                        <td>
+                                            <button class="view-instructions" onclick="viewInstructions(<?php echo $recipe['recipe_id']; ?>)">
+                                                View Instructions
                                             </button>
                                         </td>
                                         <td><?php echo date('M d, Y', strtotime($recipe['recipe_dateCreated'])); ?></td>
@@ -118,6 +124,19 @@ try {
                 </div>
                 <div class="modal-body">
                     <div id="ingredients-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions Modal -->
+        <div id="instructions-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Recipe Instructions</h2>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div id="instructions-content"></div>
                 </div>
             </div>
         </div>

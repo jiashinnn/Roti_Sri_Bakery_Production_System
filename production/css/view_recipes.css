@@ -160,4 +160,37 @@
 .delete-btn,
 .add-btn {
     color: white;
+}
+
+.view-instructions {
+    background: #17a2b8;
+    color: white;
+    border: none;
+    padding: 0.3rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.view-instructions:hover {
+    background: #138496;
+}
+
+#instructions-content {
+    white-space: pre-line;
+    line-height: 1.6;
+    padding: 1rem;
+}
+
+.modal-content {
+    max-width: 800px;
+}
+
+.instructions-list {
+    list-style-position: inside;
+    padding-left: 1rem;
+}
+
+.instructions-list li {
+    margin-bottom: 0.5rem;
 } 

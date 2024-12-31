@@ -77,14 +77,47 @@ function viewIngredients(recipeId) {
         });
 }
 
-// Close modal when clicking the close button or outside the modal
-document.querySelector('.close-modal').addEventListener('click', () => {
-    document.getElementById('ingredients-modal').style.display = 'none';
+function viewInstructions(recipeId) {
+    fetch(`get_recipe_instructions.php?recipe_id=${recipeId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const modal = document.getElementById('instructions-modal');
+                const instructionsContent = document.getElementById('instructions-content');
+                
+                // Convert instructions text to HTML list
+                const instructions = data.instructions.split('\n').filter(line => line.trim());
+                const instructionsList = document.createElement('ol');
+                instructionsList.className = 'instructions-list';
+                
+                instructions.forEach(instruction => {
+                    const li = document.createElement('li');
+                    li.textContent = instruction.replace(/^\d+\.\s*/, '');
+                    instructionsList.appendChild(li);
+                });
+                
+                instructionsContent.innerHTML = '';
+                instructionsContent.appendChild(instructionsList);
+                modal.style.display = 'block';
+            } else {
+                alert('Error loading instructions: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading instructions');
+        });
+}
+
+// Add modal close handlers
+document.querySelectorAll('.close-modal').forEach(button => {
+    button.addEventListener('click', function() {
+        this.closest('.modal').style.display = 'none';
+    });
 });
 
 window.addEventListener('click', (event) => {
-    const modal = document.getElementById('ingredients-modal');
-    if (event.target === modal) {
-        modal.style.display = 'none';
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
     }
 }); 

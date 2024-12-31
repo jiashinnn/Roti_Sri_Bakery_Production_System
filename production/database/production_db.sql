@@ -90,6 +90,97 @@ INSERT INTO `tbl_ingredients` (`ingredient_id`, `recipe_id`, `ingredient_name`, 
 (19, 9, 'Eggs', 4, 'pcs'),
 (20, 9, 'Butter', 250, 'g');
 
+-- Ingredients for Classic Baguette (ID: 1)
+INSERT INTO `tbl_ingredients` VALUES
+(62, 1, 'Bread Flour', 500, 'g'),
+(63, 1, 'Active Dry Yeast', 7, 'g'),
+(64, 1, 'Salt', 10, 'g'),
+(65, 1, 'Warm Water', 350, 'ml');
+
+-- Ingredients for Chocolate Croissant (ID: 2)
+INSERT INTO `tbl_ingredients` VALUES
+(66, 2, 'All-Purpose Flour', 500, 'g'),
+(67, 2, 'Butter', 250, 'g'),
+(68, 2, 'Sugar', 50, 'g'),
+(69, 2, 'Salt', 10, 'g'),
+(70, 2, 'Active Dry Yeast', 7, 'g'),
+(71, 2, 'Milk', 200, 'ml'),
+(72, 2, 'Dark Chocolate', 200, 'g');
+
+-- Ingredients for Vanilla Chiffon Cake (ID: 3)
+INSERT INTO `tbl_ingredients` VALUES
+(73, 3, 'Cake Flour', 150, 'g'),
+(74, 3, 'Eggs', 6, 'pcs'),
+(75, 3, 'Sugar', 150, 'g'),
+(76, 3, 'Vegetable Oil', 80, 'ml'),
+(77, 3, 'Vanilla Extract', 10, 'ml');
+
+-- Ingredients for Sourdough Bread (ID: 4)
+INSERT INTO `tbl_ingredients` VALUES
+(78, 4, 'Bread Flour', 500, 'g'),
+(79, 4, 'Whole Wheat Flour', 100, 'g'),
+(80, 4, 'Sourdough Starter', 150, 'g'),
+(81, 4, 'Salt', 12, 'g'),
+(82, 4, 'Water', 350, 'ml');
+
+-- Ingredients for Chocolate Chip Cookies (ID: 5)
+INSERT INTO `tbl_ingredients` VALUES
+(83, 5, 'All-Purpose Flour', 280, 'g'),
+(84, 5, 'Butter', 230, 'g'),
+(85, 5, 'Brown Sugar', 200, 'g'),
+(86, 5, 'White Sugar', 100, 'g'),
+(87, 5, 'Eggs', 2, 'pcs'),
+(88, 5, 'Vanilla Extract', 5, 'ml'),
+(89, 5, 'Chocolate Chips', 300, 'g');
+
+-- Ingredients for Fruit Danish (ID: 6)
+INSERT INTO `tbl_ingredients` VALUES
+(90, 6, 'All-Purpose Flour', 400, 'g'),
+(91, 6, 'Butter', 250, 'g'),
+(92, 6, 'Sugar', 50, 'g'),
+(93, 6, 'Active Dry Yeast', 7, 'g'),
+(94, 6, 'Milk', 180, 'ml'),
+(95, 6, 'Eggs', 2, 'pcs'),
+(96, 6, 'Mixed Fruits', 300, 'g');
+
+-- Ingredients for Red Velvet Cake (ID: 7)
+INSERT INTO `tbl_ingredients` VALUES
+(97, 7, 'Cake Flour', 300, 'g'),
+(98, 7, 'Cocoa Powder', 20, 'g'),
+(99, 7, 'Butter', 120, 'g'),
+(100, 7, 'Sugar', 300, 'g'),
+(101, 7, 'Eggs', 3, 'pcs'),
+(102, 7, 'Buttermilk', 240, 'ml'),
+(103, 7, 'Red Food Coloring', 30, 'ml'),
+(104, 7, 'Cream Cheese', 500, 'g');
+
+-- Ingredients for Whole Wheat Bread (ID: 8)
+INSERT INTO `tbl_ingredients` VALUES
+(105, 8, 'Whole Wheat Flour', 300, 'g'),
+(106, 8, 'Bread Flour', 200, 'g'),
+(107, 8, 'Active Dry Yeast', 7, 'g'),
+(108, 8, 'Honey', 30, 'ml'),
+(109, 8, 'Salt', 10, 'g'),
+(110, 8, 'Warm Water', 300, 'ml');
+
+-- Ingredients for Macarons (ID: 9)
+INSERT INTO `tbl_ingredients` VALUES
+(111, 9, 'Almond Flour', 200, 'g'),
+(112, 9, 'Powdered Sugar', 200, 'g'),
+(113, 9, 'Egg Whites', 70, 'g'),
+(114, 9, 'Granulated Sugar', 90, 'g'),
+(115, 9, 'Food Coloring', 1, 'g');
+
+-- Ingredients for Opera Cake (ID: 10)
+INSERT INTO `tbl_ingredients` VALUES
+(116, 10, 'Almond Flour', 150, 'g'),
+(117, 10, 'Powdered Sugar', 150, 'g'),
+(118, 10, 'Eggs', 5, 'pcs'),
+(119, 10, 'Dark Chocolate', 200, 'g'),
+(120, 10, 'Coffee Extract', 30, 'ml'),
+(121, 10, 'Butter', 250, 'g'),
+(122, 10, 'Heavy Cream', 200, 'ml');
+
 -- --------------------------------------------------------
 
 --
@@ -102,6 +193,7 @@ CREATE TABLE `tbl_recipe` (
   `recipe_category` varchar(100) NOT NULL,
   `recipe_batchSize` int(6) NOT NULL,
   `recipe_unitOfMeasure` varchar(50) NOT NULL,
+  `recipe_instructions` text NOT NULL,
   `recipe_dateCreated` timestamp NOT NULL DEFAULT current_timestamp(),
   `recipe_dateUpdated` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -110,8 +202,17 @@ CREATE TABLE `tbl_recipe` (
 -- Dumping data for table `tbl_recipe`
 --
 
-INSERT INTO `tbl_recipe` (`recipe_id`, `recipe_name`, `recipe_category`, `recipe_batchSize`, `recipe_unitOfMeasure`, `recipe_dateCreated`, `recipe_dateUpdated`) VALUES
-(9, 'Chocolate Cake', 'Cake', 8, 'pcs', '2024-12-25 15:00:26', '2024-12-25 15:06:00');
+INSERT INTO `tbl_recipe` (`recipe_id`, `recipe_name`, `recipe_category`, `recipe_batchSize`, `recipe_unitOfMeasure`, `recipe_instructions`, `recipe_dateCreated`, `recipe_dateUpdated`) VALUES
+(1, 'Classic Baguette', 'Bread', 4, 'pcs', '1. Mix flour, yeast, and salt\n2. Add water gradually and knead for 10 minutes\n3. First rise: 1 hour\n4. Shape into baguettes\n5. Second rise: 30 minutes\n6. Score and bake at 230°C for 25 minutes', '2024-12-25 15:00:26', '2024-12-25 15:06:00'),
+(2, 'Chocolate Croissant', 'Pastry', 12, 'pcs', '1. Prepare laminated dough\n2. Roll and cut into triangles\n3. Add chocolate batons\n4. Shape and proof for 2 hours\n5. Egg wash and bake at 190°C for 18 minutes', '2024-12-25 15:00:26', '2024-12-25 15:06:00'),
+(3, 'Vanilla Chiffon Cake', 'Cake', 1, 'pcs', '1. Separate eggs\n2. Whip egg whites with sugar\n3. Mix wet and dry ingredients\n4. Fold in meringue\n5. Bake in tube pan at 170°C for 45 minutes', '2024-12-25 15:00:26', '2024-12-25 15:06:00'),
+(4, 'Sourdough Bread', 'Bread', 2, 'pcs', '1. Feed starter 12 hours before\n2. Mix dough and autolyse\n3. Stretch and fold every 30 minutes\n4. Bulk ferment 4-6 hours\n5. Shape and cold proof overnight\n6. Bake in Dutch oven', '2024-12-25 15:00:26', '2024-12-25 15:06:00'),
+(5, 'Chocolate Chip Cookies', 'Cookie', 24, 'pcs', '1. Cream butter and sugars\n2. Add eggs and vanilla\n3. Mix in dry ingredients\n4. Fold in chocolate chips\n5. Scoop and bake at 180°C for 12 minutes', '2024-12-25 15:00:26', '2024-12-25 15:06:00'),
+(6, 'Fruit Danish', 'Pastry', 8, 'pcs', '1. Prepare Danish dough\n2. Roll and cut squares\n3. Add pastry cream and fruits\n4. Proof for 1 hour\n5. Bake at 200°C for 15 minutes\n6. Glaze while warm', '2024-12-25 15:00:26', '2024-12-25 15:06:00'),
+(7, 'Red Velvet Cake', 'Cake', 1, 'pcs', '1. Mix wet ingredients\n2. Combine dry ingredients\n3. Add red food coloring\n4. Bake layers at 175°C\n5. Prepare cream cheese frosting\n6. Assemble and frost', '2024-12-25 15:00:26', '2024-12-25 15:06:00'),
+(8, 'Whole Wheat Bread', 'Bread', 2, 'pcs', '1. Mix flours and yeast\n2. Knead for 15 minutes\n3. First rise: 90 minutes\n4. Shape loaves\n5. Second rise: 45 minutes\n6. Bake at 200°C', '2024-12-25 15:00:26', '2024-12-25 15:06:00'),
+(9, 'Macarons', 'Cookie', 24, 'pcs', '1. Age egg whites\n2. Make almond flour mixture\n3. Prepare meringue\n4. Macaronage\n5. Pipe and rest\n6. Bake at 150°C\n7. Fill and mature', '2024-12-25 15:00:26', '2024-12-25 15:06:00'),
+(10, 'Opera Cake', 'Cake', 1, 'pcs', '1. Bake Joconde layers\n2. Prepare coffee syrup\n3. Make chocolate ganache\n4. Prepare coffee buttercream\n5. Layer and refrigerate\n6. Glaze with chocolate', '2024-12-25 15:00:26', '2024-12-25 15:06:00');
 
 -- --------------------------------------------------------
 
@@ -258,13 +359,13 @@ ALTER TABLE `tbl_batch_assignments`
 -- AUTO_INCREMENT for table `tbl_ingredients`
 --
 ALTER TABLE `tbl_ingredients`
-  MODIFY `ingredient_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `ingredient_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=123;
 
 --
 -- AUTO_INCREMENT for table `tbl_recipe`
 --
 ALTER TABLE `tbl_recipe`
-  MODIFY `recipe_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `recipe_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `tbl_schedule`
