@@ -45,56 +45,109 @@ try {
     $stmt->execute([$schedule_id]);
     $assigned_users = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
+    // Get equipment
+    $stmt = $conn->prepare("SELECT equipment_id, equipment_name, equipment_status 
+                         FROM tbl_equipments 
+                         ORDER BY equipment_name");
+    $stmt->execute();
+    $equipment = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Get currently assigned equipment
+    $stmt = $conn->prepare("SELECT equipment_id FROM tbl_schedule_equipment WHERE schedule_id = ?");
+    $stmt->execute([$schedule_id]);
+    $assigned_equipment = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
     // Handle form submission
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        $conn->beginTransaction();
+        try {
+            $conn->beginTransaction(); // Start transaction here
 
-        // Get schedule details
-        $recipe_id = $_POST['recipe_id'];
-        $schedule_date = $_POST['schedule_date'];
-        $quantity = floatval($_POST['quantity']);
-        $status = $_POST['status'];
-        $assigned_users_new = $_POST['assigned_users'] ?? [];
+            // Get schedule details
+            $recipe_id = $_POST['recipe_id'];
+            $schedule_date = $_POST['schedule_date'];
+            $quantity = floatval($_POST['quantity']);
+            $status = $_POST['status'];
+            $assigned_users_new = $_POST['assigned_users'] ?? [];
 
-        // Update schedule
-        $stmt = $conn->prepare("UPDATE tbl_schedule SET 
-                              recipe_id = ?, 
-                              schedule_date = ?, 
-                              schedule_quantityToProduce = ?,
-                              schedule_status = ?
-                              WHERE schedule_id = ?");
-        $stmt->execute([$recipe_id, $schedule_date, $quantity, $status, $schedule_id]);
+            // Update schedule
+            $stmt = $conn->prepare("UPDATE tbl_schedule SET 
+                                  recipe_id = ?, 
+                                  schedule_date = ?, 
+                                  schedule_quantityToProduce = ?,
+                                  schedule_status = ?,
+                                  schedule_orderVolumn = ?
+                                  WHERE schedule_id = ?");
+            $stmt->execute([
+                $recipe_id, 
+                $schedule_date, 
+                $quantity, 
+                $status, 
+                $_POST['schedule_orderVolumn'],
+                $schedule_id
+            ]);
 
-        // Delete existing assignments
-        $stmt = $conn->prepare("DELETE FROM tbl_schedule_assignments WHERE schedule_id = ?");
-        $stmt->execute([$schedule_id]);
+            // Delete existing assignments
+            $stmt = $conn->prepare("DELETE FROM tbl_schedule_assignments WHERE schedule_id = ?");
+            $stmt->execute([$schedule_id]);
 
-        // Insert new assignments
-        if (!empty($assigned_users_new)) {
-            $stmt = $conn->prepare("INSERT INTO tbl_schedule_assignments (schedule_id, user_id) VALUES (?, ?)");
-            foreach ($assigned_users_new as $user_id) {
-                $stmt->execute([$schedule_id, $user_id]);
+            // Insert new assignments
+            if (!empty($assigned_users_new)) {
+                $stmt = $conn->prepare("INSERT INTO tbl_schedule_assignments (schedule_id, user_id) VALUES (?, ?)");
+                foreach ($assigned_users_new as $user_id) {
+                    $stmt->execute([$schedule_id, $user_id]);
+                }
             }
+
+            // Update equipment assignments
+            $new_equipment = $_POST['equipment'] ?? [];
+            
+            // First, set previously assigned equipment back to Available
+            $stmt = $conn->prepare("UPDATE tbl_equipments SET equipment_status = 'Available' 
+                                  WHERE equipment_id IN (
+                                      SELECT equipment_id FROM tbl_schedule_equipment 
+                                      WHERE schedule_id = ?
+                                  )");
+            $stmt->execute([$schedule_id]);
+            
+            // Delete existing equipment assignments
+            $stmt = $conn->prepare("DELETE FROM tbl_schedule_equipment WHERE schedule_id = ?");
+            $stmt->execute([$schedule_id]);
+            
+            // Insert new equipment assignments
+            if (!empty($new_equipment)) {
+                $stmt = $conn->prepare("INSERT INTO tbl_schedule_equipment (schedule_id, equipment_id) VALUES (?, ?)");
+                foreach ($new_equipment as $equipment_id) {
+                    $stmt->execute([$schedule_id, $equipment_id]);
+                }
+                
+                // Update new equipment status to 'In Use'
+                $stmt = $conn->prepare("UPDATE tbl_equipments SET equipment_status = 'In Use' WHERE equipment_id = ?");
+                foreach ($new_equipment as $equipment_id) {
+                    $stmt->execute([$equipment_id]);
+                }
+            }
+
+            $conn->commit();
+            $success_message = "Schedule updated successfully!";
+
+            // Refresh schedule data
+            $stmt = $conn->prepare("SELECT * FROM tbl_schedule WHERE schedule_id = ?");
+            $stmt->execute([$schedule_id]);
+            $schedule = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // Refresh assigned users
+            $stmt = $conn->prepare("SELECT user_id FROM tbl_schedule_assignments WHERE schedule_id = ?");
+            $stmt->execute([$schedule_id]);
+            $assigned_users = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        } catch(PDOException $e) {
+            if ($conn->inTransaction()) {
+                $conn->rollBack();
+            }
+            throw $e;
         }
-
-        $conn->commit();
-        $success_message = "Schedule updated successfully!";
-
-        // Refresh schedule data
-        $stmt = $conn->prepare("SELECT * FROM tbl_schedule WHERE schedule_id = ?");
-        $stmt->execute([$schedule_id]);
-        $schedule = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        // Refresh assigned users
-        $stmt = $conn->prepare("SELECT user_id FROM tbl_schedule_assignments WHERE schedule_id = ?");
-        $stmt->execute([$schedule_id]);
-        $assigned_users = $stmt->fetchAll(PDO::FETCH_COLUMN);
-
     }
 } catch(PDOException $e) {
-    if (isset($conn)) {
-        $conn->rollBack();
-    }
     $error_message = "Error: " . $e->getMessage();
 }
 ?>
@@ -163,6 +216,17 @@ try {
                         <option value="Completed" <?php echo $schedule['schedule_status'] == 'Completed' ? 'selected' : ''; ?>>Completed</option>
                     </select>
                 </div>
+
+                <div class="form-group">
+                    <label for="schedule_orderVolumn">Order Volume (units)</label>
+                    <input type="number" 
+                           class="form-control" 
+                           id="schedule_orderVolumn" 
+                           name="schedule_orderVolumn" 
+                           value="<?php echo htmlspecialchars($schedule['schedule_orderVolumn']); ?>" 
+                           required 
+                           min="1">
+                </div>
             </div>
 
             <div class="form-section">
@@ -186,6 +250,29 @@ try {
                         </label>
                     <?php endforeach; ?>
                     </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>Equipment Selection</h2>
+                <div class="equipment-selection">
+                    <?php if (empty($equipment)): ?>
+                        <p class="no-equipment">No equipment available at the moment.</p>
+                    <?php else: ?>
+                        <?php foreach ($equipment as $item): ?>
+                            <label class="equipment-checkbox <?php echo strtolower($item['equipment_status']); ?>">
+                                <input type="checkbox" 
+                                       name="equipment[]" 
+                                       value="<?php echo $item['equipment_id']; ?>"
+                                       <?php echo in_array($item['equipment_id'], $assigned_equipment) ? 'checked' : ''; ?>
+                                       <?php echo ($item['equipment_status'] == 'Out of Order' || $item['equipment_status'] == 'Maintenance') ? 'disabled' : ''; ?>>
+                                <?php echo htmlspecialchars($item['equipment_name']); ?>
+                                <span class="equipment-status <?php echo strtolower($item['equipment_status']); ?>">
+                                    (<?php echo $item['equipment_status']; ?>)
+                                </span>
+                            </label>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
             </div>
 

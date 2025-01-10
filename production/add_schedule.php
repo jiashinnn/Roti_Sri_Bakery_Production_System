@@ -22,34 +22,63 @@ try {
                          ORDER BY user_role, user_fullName");
     $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Get all equipment - show all equipment regardless of status
+    $stmt = $conn->query("SELECT equipment_id, equipment_name, equipment_status 
+                         FROM tbl_equipments 
+                         ORDER BY equipment_name");
+    $equipment = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
     // Handle form submission
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $conn->beginTransaction();
+        try {
+            // Get schedule details
+            $recipe_id = $_POST['recipe_id'];
+            $schedule_date = $_POST['schedule_date'];
+            $quantity = floatval($_POST['quantity']);
+            $schedule_orderVolumn = intval($_POST['schedule_orderVolumn']);
+            $assigned_users = $_POST['assigned_users'] ?? [];
 
-        // Get schedule details
-        $recipe_id = $_POST['recipe_id'];
-        $schedule_date = $_POST['schedule_date'];
-        $quantity = floatval($_POST['quantity']);
-        $assigned_users = $_POST['assigned_users'] ?? [];
+            // Get selected equipment
+            $selected_equipment = $_POST['equipment'] ?? [];
 
-        // Insert schedule
-        $stmt = $conn->prepare("INSERT INTO tbl_schedule (recipe_id, schedule_date, schedule_quantityToProduce) 
-                              VALUES (?, ?, ?)");
-        $stmt->execute([$recipe_id, $schedule_date, $quantity]);
-        
-        $schedule_id = $conn->lastInsertId();
+            // Insert schedule
+            $stmt = $conn->prepare("INSERT INTO tbl_schedule 
+                (recipe_id, schedule_date, schedule_quantityToProduce, schedule_status, schedule_orderVolumn) 
+                VALUES (?, ?, ?, 'Pending', ?)");
+            $stmt->execute([$recipe_id, $schedule_date, $quantity, $schedule_orderVolumn]);
+            
+            $schedule_id = $conn->lastInsertId();
 
-        // Insert user assignments
-        if (!empty($assigned_users)) {
-            $stmt = $conn->prepare("INSERT INTO tbl_schedule_assignments (schedule_id, user_id) VALUES (?, ?)");
-            foreach ($assigned_users as $user_id) {
-                $stmt->execute([$schedule_id, $user_id]);
+            // Insert equipment assignments
+            if (!empty($selected_equipment)) {
+                $stmt = $conn->prepare("INSERT INTO tbl_schedule_equipment (schedule_id, equipment_id) VALUES (?, ?)");
+                foreach ($selected_equipment as $equipment_id) {
+                    $stmt->execute([$schedule_id, $equipment_id]);
+                }
+                
+                // Update equipment status to 'In Use' in tbl_equipments
+                $stmt = $conn->prepare("UPDATE tbl_equipments SET equipment_status = 'In Use' WHERE equipment_id = ?");
+                foreach ($selected_equipment as $equipment_id) {
+                    $stmt->execute([$equipment_id]);
+                }
             }
+
+            // Insert user assignments
+            if (!empty($assigned_users)) {
+                $stmt = $conn->prepare("INSERT INTO tbl_schedule_assignments (schedule_id, user_id) VALUES (?, ?)");
+                foreach ($assigned_users as $user_id) {
+                    $stmt->execute([$schedule_id, $user_id]);
+                }
+            }
+
+            $conn->commit();
+            $success_message = "Schedule created successfully!";
+
+        } catch(PDOException $e) {
+            $conn->rollBack();
+            throw $e;
         }
-
-        $conn->commit();
-        $success_message = "Schedule created successfully!";
-
     }
 } catch(PDOException $e) {
     if (isset($conn)) {
@@ -111,6 +140,38 @@ try {
                 <div class="form-group">
                     <label for="quantity">Quantity to Produce</label>
                     <input type="number" id="quantity" name="quantity" step="0.01" min="0.01" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="schedule_orderVolumn">Order Volume (units)</label>
+                    <input type="number" 
+                           class="form-control" 
+                           id="schedule_orderVolumn" 
+                           name="schedule_orderVolumn" 
+                           required 
+                           min="1"
+                           placeholder="Enter order volume">
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>Equipment Selection</h2>
+                <div class="equipment-selection">
+                    <?php if (empty($equipment)): ?>
+                        <p class="no-equipment">No equipment available at the moment.</p>
+                    <?php else: ?>
+                        <?php foreach ($equipment as $item): ?>
+                            <label class="equipment-checkbox">
+                                <input type="checkbox" 
+                                       name="equipment[]" 
+                                       value="<?php echo $item['equipment_id']; ?>">
+                                <?php echo htmlspecialchars($item['equipment_name']); ?>
+                                <span class="equipment-status <?php echo strtolower($item['equipment_status']); ?>">
+                                    (<?php echo $item['equipment_status']; ?>)
+                                </span>
+                            </label>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
             </div>
 

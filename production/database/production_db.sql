@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 29, 2024 at 04:49 PM
+-- Generation Time: Jan 10, 2025 at 07:00 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -69,6 +69,32 @@ INSERT INTO `tbl_batch_assignments` (`ba_id`, `batch_id`, `user_id`, `ba_task`, 
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `tbl_equipments`
+--
+
+CREATE TABLE `tbl_equipments` (
+  `equipment_id` int(6) NOT NULL,
+  `equipment_name` varchar(100) NOT NULL,
+  `equipment_description` text NOT NULL,
+  `equipment_status` enum('Available','In Use','Maintenance','Out of Order') NOT NULL DEFAULT 'Available',
+  `equipment_dateAdded` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `tbl_equipments`
+--
+
+INSERT INTO `tbl_equipments` (`equipment_id`, `equipment_name`, `equipment_description`, `equipment_status`, `equipment_dateAdded`) VALUES
+(1, 'Mixer A', 'Industrial dough mixer - 50L capacity', 'In Use', '2025-01-10 13:37:17'),
+(2, 'Mixer B', 'Industrial dough mixer - 100L capacity', 'Available', '2025-01-10 13:37:17'),
+(3, 'Oven 1', 'Deck oven - 3 decks', 'Available', '2025-01-10 13:38:05'),
+(4, 'Oven 2', 'Convection oven', 'Available', '2025-01-10 13:38:05'),
+(5, 'Proofer 1', 'Walk-in proofer', 'Available', '2025-01-10 13:39:53'),
+(6, 'Sheeter 1', 'Dough sheeter - medium capacity', 'Available', '2025-01-10 13:39:53');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tbl_ingredients`
 --
 
@@ -88,63 +114,42 @@ INSERT INTO `tbl_ingredients` (`ingredient_id`, `recipe_id`, `ingredient_name`, 
 (17, 9, 'Sugar', 200, 'g'),
 (18, 9, 'Cocoa Powder', 100, 'g'),
 (19, 9, 'Eggs', 4, 'pcs'),
-(20, 9, 'Butter', 250, 'g');
-
--- Ingredients for Classic Baguette (ID: 1)
-INSERT INTO `tbl_ingredients` VALUES
+(20, 9, 'Butter', 250, 'g'),
 (62, 1, 'Bread Flour', 500, 'g'),
 (63, 1, 'Active Dry Yeast', 7, 'g'),
 (64, 1, 'Salt', 10, 'g'),
-(65, 1, 'Warm Water', 350, 'ml');
-
--- Ingredients for Chocolate Croissant (ID: 2)
-INSERT INTO `tbl_ingredients` VALUES
+(65, 1, 'Warm Water', 350, 'ml'),
 (66, 2, 'All-Purpose Flour', 500, 'g'),
 (67, 2, 'Butter', 250, 'g'),
 (68, 2, 'Sugar', 50, 'g'),
 (69, 2, 'Salt', 10, 'g'),
 (70, 2, 'Active Dry Yeast', 7, 'g'),
 (71, 2, 'Milk', 200, 'ml'),
-(72, 2, 'Dark Chocolate', 200, 'g');
-
--- Ingredients for Vanilla Chiffon Cake (ID: 3)
-INSERT INTO `tbl_ingredients` VALUES
+(72, 2, 'Dark Chocolate', 200, 'g'),
 (73, 3, 'Cake Flour', 150, 'g'),
 (74, 3, 'Eggs', 6, 'pcs'),
 (75, 3, 'Sugar', 150, 'g'),
 (76, 3, 'Vegetable Oil', 80, 'ml'),
-(77, 3, 'Vanilla Extract', 10, 'ml');
-
--- Ingredients for Sourdough Bread (ID: 4)
-INSERT INTO `tbl_ingredients` VALUES
+(77, 3, 'Vanilla Extract', 10, 'ml'),
 (78, 4, 'Bread Flour', 500, 'g'),
 (79, 4, 'Whole Wheat Flour', 100, 'g'),
 (80, 4, 'Sourdough Starter', 150, 'g'),
 (81, 4, 'Salt', 12, 'g'),
-(82, 4, 'Water', 350, 'ml');
-
--- Ingredients for Chocolate Chip Cookies (ID: 5)
-INSERT INTO `tbl_ingredients` VALUES
+(82, 4, 'Water', 350, 'ml'),
 (83, 5, 'All-Purpose Flour', 280, 'g'),
 (84, 5, 'Butter', 230, 'g'),
 (85, 5, 'Brown Sugar', 200, 'g'),
 (86, 5, 'White Sugar', 100, 'g'),
 (87, 5, 'Eggs', 2, 'pcs'),
 (88, 5, 'Vanilla Extract', 5, 'ml'),
-(89, 5, 'Chocolate Chips', 300, 'g');
-
--- Ingredients for Fruit Danish (ID: 6)
-INSERT INTO `tbl_ingredients` VALUES
+(89, 5, 'Chocolate Chips', 300, 'g'),
 (90, 6, 'All-Purpose Flour', 400, 'g'),
 (91, 6, 'Butter', 250, 'g'),
 (92, 6, 'Sugar', 50, 'g'),
 (93, 6, 'Active Dry Yeast', 7, 'g'),
 (94, 6, 'Milk', 180, 'ml'),
 (95, 6, 'Eggs', 2, 'pcs'),
-(96, 6, 'Mixed Fruits', 300, 'g');
-
--- Ingredients for Red Velvet Cake (ID: 7)
-INSERT INTO `tbl_ingredients` VALUES
+(96, 6, 'Mixed Fruits', 300, 'g'),
 (97, 7, 'Cake Flour', 300, 'g'),
 (98, 7, 'Cocoa Powder', 20, 'g'),
 (99, 7, 'Butter', 120, 'g'),
@@ -152,27 +157,18 @@ INSERT INTO `tbl_ingredients` VALUES
 (101, 7, 'Eggs', 3, 'pcs'),
 (102, 7, 'Buttermilk', 240, 'ml'),
 (103, 7, 'Red Food Coloring', 30, 'ml'),
-(104, 7, 'Cream Cheese', 500, 'g');
-
--- Ingredients for Whole Wheat Bread (ID: 8)
-INSERT INTO `tbl_ingredients` VALUES
+(104, 7, 'Cream Cheese', 500, 'g'),
 (105, 8, 'Whole Wheat Flour', 300, 'g'),
 (106, 8, 'Bread Flour', 200, 'g'),
 (107, 8, 'Active Dry Yeast', 7, 'g'),
 (108, 8, 'Honey', 30, 'ml'),
 (109, 8, 'Salt', 10, 'g'),
-(110, 8, 'Warm Water', 300, 'ml');
-
--- Ingredients for Macarons (ID: 9)
-INSERT INTO `tbl_ingredients` VALUES
+(110, 8, 'Warm Water', 300, 'ml'),
 (111, 9, 'Almond Flour', 200, 'g'),
 (112, 9, 'Powdered Sugar', 200, 'g'),
 (113, 9, 'Egg Whites', 70, 'g'),
 (114, 9, 'Granulated Sugar', 90, 'g'),
-(115, 9, 'Food Coloring', 1, 'g');
-
--- Ingredients for Opera Cake (ID: 10)
-INSERT INTO `tbl_ingredients` VALUES
+(115, 9, 'Food Coloring', 1, 'g'),
 (116, 10, 'Almond Flour', 150, 'g'),
 (117, 10, 'Powdered Sugar', 150, 'g'),
 (118, 10, 'Eggs', 5, 'pcs'),
@@ -225,6 +221,7 @@ CREATE TABLE `tbl_schedule` (
   `recipe_id` int(6) NOT NULL,
   `schedule_date` date NOT NULL,
   `schedule_quantityToProduce` int(6) NOT NULL,
+  `schedule_orderVolumn` int(6) NOT NULL,
   `schedule_status` enum('Pending','In Progress','Completed','') NOT NULL DEFAULT 'Pending'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -232,8 +229,8 @@ CREATE TABLE `tbl_schedule` (
 -- Dumping data for table `tbl_schedule`
 --
 
-INSERT INTO `tbl_schedule` (`schedule_id`, `recipe_id`, `schedule_date`, `schedule_quantityToProduce`, `schedule_status`) VALUES
-(3, 9, '2024-12-28', 2, 'Pending');
+INSERT INTO `tbl_schedule` (`schedule_id`, `recipe_id`, `schedule_date`, `schedule_quantityToProduce`, `schedule_orderVolumn`, `schedule_status`) VALUES
+(3, 9, '2024-12-28', 2, 1, 'Pending');
 
 -- --------------------------------------------------------
 
@@ -253,8 +250,27 @@ CREATE TABLE `tbl_schedule_assignments` (
 --
 
 INSERT INTO `tbl_schedule_assignments` (`sa_id`, `schedule_id`, `user_id`, `sa_dateAssigned`) VALUES
-(5, 3, 15, '2024-12-29 15:44:23'),
-(6, 3, 14, '2024-12-29 15:44:23');
+(9, 3, 15, '2025-01-10 05:44:13'),
+(10, 3, 14, '2025-01-10 05:44:13');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tbl_schedule_equipment`
+--
+
+CREATE TABLE `tbl_schedule_equipment` (
+  `se_id` int(6) NOT NULL,
+  `schedule_id` int(6) NOT NULL,
+  `equipment_id` int(6) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `tbl_schedule_equipment`
+--
+
+INSERT INTO `tbl_schedule_equipment` (`se_id`, `schedule_id`, `equipment_id`) VALUES
+(0, 3, 1);
 
 -- --------------------------------------------------------
 
@@ -306,6 +322,12 @@ ALTER TABLE `tbl_batch_assignments`
   ADD KEY `batch_id` (`batch_id`);
 
 --
+-- Indexes for table `tbl_equipments`
+--
+ALTER TABLE `tbl_equipments`
+  ADD PRIMARY KEY (`equipment_id`);
+
+--
 -- Indexes for table `tbl_ingredients`
 --
 ALTER TABLE `tbl_ingredients`
@@ -334,6 +356,13 @@ ALTER TABLE `tbl_schedule_assignments`
   ADD KEY `user_id` (`user_id`);
 
 --
+-- Indexes for table `tbl_schedule_equipment`
+--
+ALTER TABLE `tbl_schedule_equipment`
+  ADD KEY `equipment_id` (`equipment_id`),
+  ADD KEY `schedule_id` (`schedule_id`);
+
+--
 -- Indexes for table `tbl_users`
 --
 ALTER TABLE `tbl_users`
@@ -354,6 +383,12 @@ ALTER TABLE `tbl_batches`
 --
 ALTER TABLE `tbl_batch_assignments`
   MODIFY `ba_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `tbl_equipments`
+--
+ALTER TABLE `tbl_equipments`
+  MODIFY `equipment_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `tbl_ingredients`
@@ -377,7 +412,7 @@ ALTER TABLE `tbl_schedule`
 -- AUTO_INCREMENT for table `tbl_schedule_assignments`
 --
 ALTER TABLE `tbl_schedule_assignments`
-  MODIFY `sa_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `sa_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `tbl_users`
@@ -421,6 +456,13 @@ ALTER TABLE `tbl_schedule`
 ALTER TABLE `tbl_schedule_assignments`
   ADD CONSTRAINT `tbl_schedule_assignments_ibfk_1` FOREIGN KEY (`schedule_id`) REFERENCES `tbl_schedule` (`schedule_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `tbl_schedule_assignments_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `tbl_users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `tbl_schedule_equipment`
+--
+ALTER TABLE `tbl_schedule_equipment`
+  ADD CONSTRAINT `tbl_schedule_equipment_ibfk_1` FOREIGN KEY (`equipment_id`) REFERENCES `tbl_equipments` (`equipment_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `tbl_schedule_equipment_ibfk_2` FOREIGN KEY (`schedule_id`) REFERENCES `tbl_schedule` (`schedule_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

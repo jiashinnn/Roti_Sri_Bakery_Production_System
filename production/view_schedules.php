@@ -18,11 +18,14 @@ $sort_order = $_GET['order'] ?? 'DESC';
 try {
     // Base query
     $query = "SELECT s.*, r.recipe_name, 
-              GROUP_CONCAT(CONCAT(u.user_fullName, ' (', u.user_role, ')') SEPARATOR ', ') as assigned_users
+              GROUP_CONCAT(DISTINCT CONCAT(u.user_fullName, ' (', u.user_role, ')') SEPARATOR ', ') as assigned_users,
+              GROUP_CONCAT(DISTINCT e.equipment_name SEPARATOR ', ') as assigned_equipment
               FROM tbl_schedule s
               LEFT JOIN tbl_recipe r ON s.recipe_id = r.recipe_id
               LEFT JOIN tbl_schedule_assignments sa ON s.schedule_id = sa.schedule_id
-              LEFT JOIN tbl_users u ON sa.user_id = u.user_id";
+              LEFT JOIN tbl_users u ON sa.user_id = u.user_id
+              LEFT JOIN tbl_schedule_equipment se ON s.schedule_id = se.schedule_id
+              LEFT JOIN tbl_equipments e ON se.equipment_id = e.equipment_id";
 
     $where_conditions = [];
     $params = [];
@@ -46,7 +49,7 @@ try {
     }
 
     $query .= " GROUP BY s.schedule_id";
-    $query .= " ORDER BY " . ($sort_by == 'recipe_name' ? 'r.recipe_name' : "s.$sort_by") . " $sort_order";
+    $query .= " ORDER BY " . ($sort_by == 'schedule_orderVolumn' ? 's.schedule_orderVolumn' : "s.$sort_by") . " $sort_order";
 
     $stmt = $conn->prepare($query);
     $stmt->execute($params);
@@ -165,6 +168,15 @@ function getSortLink($field, $current_sort, $current_order) {
                                     <?php endif; ?>
                                 </a>
                             </th>
+                            <th>
+                                <a href="<?php echo getSortLink('schedule_orderVolumn', $sort_by, $sort_order); ?>" class="sort-link">
+                                    Order Volume
+                                    <?php if ($sort_by === 'schedule_orderVolumn'): ?>
+                                        <i class="fas fa-sort-<?php echo $sort_order === 'ASC' ? 'up' : 'down'; ?>"></i>
+                                    <?php endif; ?>
+                                </a>
+                            </th>
+                            <th>Equipment</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -186,6 +198,8 @@ function getSortLink($field, $current_sort, $current_order) {
                                             <?php echo $schedule['schedule_status']; ?>
                                         </span>
                                     </td>
+                                    <td><?php echo htmlspecialchars($schedule['schedule_orderVolumn']) . " units"; ?></td>
+                                    <td><?php echo htmlspecialchars($schedule['assigned_equipment'] ?? 'No equipment assigned'); ?></td>
                                     <td class="actions">
                                         <a href="edit_schedule.php?id=<?php echo $schedule['schedule_id']; ?>" class="edit-btn" title="Edit">
                                             <i class="fas fa-edit"></i>
