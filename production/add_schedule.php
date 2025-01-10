@@ -164,7 +164,10 @@ try {
                             <label class="equipment-checkbox">
                                 <input type="checkbox" 
                                        name="equipment[]" 
-                                       value="<?php echo $item['equipment_id']; ?>">
+                                       value="<?php echo $item['equipment_id']; ?>"
+                                       <?php echo ($item['equipment_status'] == 'In Use' || 
+                                                 $item['equipment_status'] == 'Maintenance' || 
+                                                 $item['equipment_status'] == 'Out of Order') ? 'disabled' : ''; ?>>
                                 <?php echo htmlspecialchars($item['equipment_name']); ?>
                                 <span class="equipment-status <?php echo strtolower($item['equipment_status']); ?>">
                                     (<?php echo $item['equipment_status']; ?>)

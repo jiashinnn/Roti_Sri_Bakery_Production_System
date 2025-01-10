@@ -328,4 +328,13 @@
     padding: 1rem;
     color: #666;
     font-style: italic;
+}
+
+.equipment-checkbox input[type="checkbox"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.equipment-checkbox input[type="checkbox"]:disabled + span {
+    color: #999;
 } 

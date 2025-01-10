@@ -264,8 +264,7 @@ try {
                                 <input type="checkbox" 
                                        name="equipment[]" 
                                        value="<?php echo $item['equipment_id']; ?>"
-                                       <?php echo in_array($item['equipment_id'], $assigned_equipment) ? 'checked' : ''; ?>
-                                       <?php echo ($item['equipment_status'] == 'Out of Order' || $item['equipment_status'] == 'Maintenance') ? 'disabled' : ''; ?>>
+                                       <?php echo in_array($item['equipment_id'], $assigned_equipment) ? 'checked' : ''; ?>>
                                 <?php echo htmlspecialchars($item['equipment_name']); ?>
                                 <span class="equipment-status <?php echo strtolower($item['equipment_status']); ?>">
                                     (<?php echo $item['equipment_status']; ?>)
