@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 10, 2025 at 07:00 AM
+-- Generation Time: Jan 12, 2025 at 12:39 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -35,7 +35,7 @@ CREATE TABLE `tbl_batches` (
   `batch_endTime` datetime NOT NULL,
   `batch_status` enum('Pending','In Progress','Completed','') NOT NULL DEFAULT 'Pending',
   `batch_remarks` text NOT NULL,
-  `quality_check` VARCHAR(255) NOT NULL DEFAULT ''
+  `quality_check` varchar(255) NOT NULL DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -77,7 +77,7 @@ CREATE TABLE `tbl_equipments` (
   `equipment_id` int(6) NOT NULL,
   `equipment_name` varchar(100) NOT NULL,
   `equipment_description` text NOT NULL,
-  `equipment_status` enum('Available','In Use','Maintenance','Out of Order') NOT NULL DEFAULT 'Available',
+  `equipment_status` enum('Available','Maintenance','Out of Order') NOT NULL DEFAULT 'Available',
   `equipment_dateAdded` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -86,7 +86,7 @@ CREATE TABLE `tbl_equipments` (
 --
 
 INSERT INTO `tbl_equipments` (`equipment_id`, `equipment_name`, `equipment_description`, `equipment_status`, `equipment_dateAdded`) VALUES
-(1, 'Mixer A', 'Industrial dough mixer - 50L capacity', 'In Use', '2025-01-10 13:37:17'),
+(1, 'Mixer A', 'Industrial dough mixer - 50L capacity', '', '2025-01-10 13:37:17'),
 (2, 'Mixer B', 'Industrial dough mixer - 100L capacity', 'Available', '2025-01-10 13:37:17'),
 (3, 'Oven 1', 'Deck oven - 3 decks', 'Available', '2025-01-10 13:38:05'),
 (4, 'Oven 2', 'Convection oven', 'Available', '2025-01-10 13:38:05'),
@@ -263,15 +263,16 @@ INSERT INTO `tbl_schedule_assignments` (`sa_id`, `schedule_id`, `user_id`, `sa_d
 CREATE TABLE `tbl_schedule_equipment` (
   `se_id` int(6) NOT NULL,
   `schedule_id` int(6) NOT NULL,
-  `equipment_id` int(6) NOT NULL
+  `equipment_id` int(6) NOT NULL,
+  `se_dateAssigned` datetime(6) NOT NULL DEFAULT current_timestamp(6)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `tbl_schedule_equipment`
 --
 
-INSERT INTO `tbl_schedule_equipment` (`se_id`, `schedule_id`, `equipment_id`) VALUES
-(0, 3, 1);
+INSERT INTO `tbl_schedule_equipment` (`se_id`, `schedule_id`, `equipment_id`, `se_dateAssigned`) VALUES
+(1, 3, 1, '2025-01-12 19:34:52.610252');
 
 -- --------------------------------------------------------
 
@@ -296,7 +297,7 @@ CREATE TABLE `tbl_users` (
 
 INSERT INTO `tbl_users` (`user_id`, `user_fullName`, `user_contact`, `user_address`, `user_email`, `user_password`, `user_dateRegister`, `user_role`) VALUES
 (13, 'Admin', '0123456789', 'Roti Sri Bakery', 'Admin@gmail.com', '$2y$10$ydcLcf5duwhxgjXK.k/mBu0ikQTz14zXVDzmcx25BOhUsNifs5QB.', '2024-12-29 16:36:59', 'Admin'),
-(14, 'Alicia', '0123456789', 'Kedah', 'alicia@gmail.com', '$2y$10$AIa/Or4OCSbPpO6Ii2/FTOuElG6gNMrMurzMcaBBxHl0nZGz6pA.2', '2024-12-29 16:38:47', 'Baker'),
+(14, 'Alicia', '0123456789', 'Kedah', 'alicia@gmail.com', '$2y$10$AIa/Or4OCSbPpO6Ii2/FTOuElG6gNMrMurzMcaBBxHl0nZGz6pA.2', '2024-12-29 16:38:47', 'Supervisor'),
 (15, 'Abby', '0123456789', 'Kedah', 'abby@gmail.com', '$2y$10$wHP8eBIK2iFIPznx4cop5ue5wlEBw4HYxU0is3ogQw5DeSLrvA8Re', '2024-12-29 16:39:21', 'Baker'),
 (16, 'Aurora', '0123456789', 'Kedah', 'aurora@gmail.com', '$2y$10$EfeC4D4e6C2XFTUMbJjxXO.MJ2OvHtSwpYGztV.Hh5WxSxwcXdbA.', '2024-12-29 16:40:12', 'Baker'),
 (17, 'Irdina', '0123456789', 'Kedah', 'irdina@gmail.com', '$2y$10$NpmQZqhTTp4YOGvN4DGNkeoKdZ2oiB6UJGrI4f/cCStUpNt2CWbVK', '2024-12-29 16:41:00', 'Baker'),
@@ -360,6 +361,7 @@ ALTER TABLE `tbl_schedule_assignments`
 -- Indexes for table `tbl_schedule_equipment`
 --
 ALTER TABLE `tbl_schedule_equipment`
+  ADD PRIMARY KEY (`se_id`),
   ADD KEY `equipment_id` (`equipment_id`),
   ADD KEY `schedule_id` (`schedule_id`);
 
@@ -414,6 +416,12 @@ ALTER TABLE `tbl_schedule`
 --
 ALTER TABLE `tbl_schedule_assignments`
   MODIFY `sa_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- AUTO_INCREMENT for table `tbl_schedule_equipment`
+--
+ALTER TABLE `tbl_schedule_equipment`
+  MODIFY `se_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `tbl_users`
