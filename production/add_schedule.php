@@ -10,23 +10,14 @@ if (!isset($_SESSION['user_id'])) {
 
 $success_message = '';
 $error_message = '';
+$recipes = [];
+$equipment = [];
+$users = [];
 
 try {
     // Get all recipes
     $stmt = $conn->query("SELECT recipe_id, recipe_name FROM tbl_recipe ORDER BY recipe_name");
     $recipes = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Get all users (bakers and supervisors)
-    $stmt = $conn->query("SELECT user_id, user_fullName, user_role FROM tbl_users 
-                         WHERE user_role IN ('Baker', 'Supervisor') 
-                         ORDER BY user_role, user_fullName");
-    $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Get all equipment - show all equipment regardless of status
-    $stmt = $conn->query("SELECT equipment_id, equipment_name, equipment_status 
-                         FROM tbl_equipments 
-                         ORDER BY equipment_name");
-    $equipment = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Handle form submission
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -38,8 +29,6 @@ try {
             $quantity = floatval($_POST['quantity']);
             $schedule_orderVolumn = intval($_POST['schedule_orderVolumn']);
             $assigned_users = $_POST['assigned_users'] ?? [];
-
-            // Get selected equipment
             $selected_equipment = $_POST['equipment'] ?? [];
 
             // Insert schedule
@@ -56,12 +45,6 @@ try {
                 foreach ($selected_equipment as $equipment_id) {
                     $stmt->execute([$schedule_id, $equipment_id]);
                 }
-                
-                // Update equipment status to 'In Use' in tbl_equipments
-                $stmt = $conn->prepare("UPDATE tbl_equipments SET equipment_status = 'In Use' WHERE equipment_id = ?");
-                foreach ($selected_equipment as $equipment_id) {
-                    $stmt->execute([$equipment_id]);
-                }
             }
 
             // Insert user assignments
@@ -74,16 +57,68 @@ try {
 
             $conn->commit();
             $success_message = "Schedule created successfully!";
-
         } catch(PDOException $e) {
             $conn->rollBack();
             throw $e;
         }
     }
-} catch(PDOException $e) {
-    if (isset($conn)) {
-        $conn->rollBack();
+
+    // Handle AJAX requests for user availability
+    if (isset($_GET['date'])) {
+        $selected_date = $_GET['date'];
+
+        $stmt = $conn->prepare("
+            SELECT u.user_id, u.user_fullName, u.user_role,
+                   CASE 
+                       WHEN EXISTS (
+                           SELECT 1 
+                           FROM tbl_schedule_assignments sa 
+                           JOIN tbl_schedule s ON sa.schedule_id = s.schedule_id 
+                           WHERE sa.user_id = u.user_id 
+                           AND DATE(s.schedule_date) = ?
+                       ) THEN 'Unavailable'
+                       ELSE 'Available'
+                   END AS availability_status
+            FROM tbl_users u
+            WHERE u.user_role IN ('Baker', 'Supervisor')
+            ORDER BY u.user_role, u.user_fullName
+        ");
+        $stmt->execute([$selected_date]);
+        $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        header('Content-Type: application/json');
+        echo json_encode($users);
+        exit();
     }
+
+    // Handle AJAX requests for equipment availability
+    if (isset($_GET['date_equipment'])) {
+        $selected_date = $_GET['date_equipment'];
+    
+        $stmt = $conn->prepare("
+            SELECT e.equipment_id, e.equipment_name,
+                   CASE 
+                       WHEN EXISTS (
+                           SELECT 1 
+                           FROM tbl_schedule_equipment se 
+                           JOIN tbl_schedule s ON se.schedule_id = s.schedule_id 
+                           WHERE se.equipment_id = e.equipment_id 
+                           AND DATE(s.schedule_date) = ?
+                       ) THEN 'In-Use'
+                       ELSE 'Available'
+                   END AS availability_status
+            FROM tbl_equipments e
+            ORDER BY e.equipment_name
+        ");
+        $stmt->execute([$selected_date]);
+        $equipment = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+        header('Content-Type: application/json');
+        echo json_encode($equipment);
+        exit();
+    }
+    
+} catch(PDOException $e) {
     $error_message = "Error: " . $e->getMessage();
 }
 ?>
@@ -118,7 +153,6 @@ try {
         <form method="POST" class="schedule-form">
             <div class="form-section">
                 <h2>Schedule Details</h2>
-                
                 <div class="form-group">
                     <label for="recipe_id">Recipe</label>
                     <select id="recipe_id" name="recipe_id" required>
@@ -144,59 +178,22 @@ try {
 
                 <div class="form-group">
                     <label for="schedule_orderVolumn">Order Volume (units)</label>
-                    <input type="number" 
-                           class="form-control" 
-                           id="schedule_orderVolumn" 
-                           name="schedule_orderVolumn" 
-                           required 
-                           min="1"
-                           placeholder="Enter order volume">
+                    <input type="number" id="schedule_orderVolumn" name="schedule_orderVolumn" required min="1">
                 </div>
             </div>
 
             <div class="form-section">
                 <h2>Equipment Selection</h2>
-                <div class="equipment-selection">
-                    <?php if (empty($equipment)): ?>
-                        <p class="no-equipment">No equipment available at the moment.</p>
-                    <?php else: ?>
-                        <?php foreach ($equipment as $item): ?>
-                            <label class="equipment-checkbox">
-                                <input type="checkbox" 
-                                       name="equipment[]" 
-                                       value="<?php echo $item['equipment_id']; ?>"
-                                       <?php echo ($item['equipment_status'] == 'In Use' || 
-                                                 $item['equipment_status'] == 'Maintenance' || 
-                                                 $item['equipment_status'] == 'Out of Order') ? 'disabled' : ''; ?>>
-                                <?php echo htmlspecialchars($item['equipment_name']); ?>
-                                <span class="equipment-status <?php echo strtolower($item['equipment_status']); ?>">
-                                    (<?php echo $item['equipment_status']; ?>)
-                                </span>
-                            </label>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                <div id="equipment-selection" class="equipment-selection">
+                    <p>Select a production date to see equipment availability.</p>
                 </div>
             </div>
 
+
             <div class="form-section">
                 <h2>Assign Users</h2>
-                <div class="user-assignments">
-                    <?php
-                    $current_role = '';
-                    foreach ($users as $user):
-                        if ($current_role != $user['user_role']):
-                            if ($current_role != '') echo '</div>';
-                            $current_role = $user['user_role'];
-                    ?>
-                        <h3><?php echo $current_role; ?>s</h3>
-                        <div class="user-group">
-                    <?php endif; ?>
-                        <label class="user-checkbox">
-                            <input type="checkbox" name="assigned_users[]" value="<?php echo $user['user_id']; ?>">
-                            <?php echo htmlspecialchars($user['user_fullName']); ?>
-                        </label>
-                    <?php endforeach; ?>
-                    </div>
+                <div id="user-availability" class="user-selection">
+                    <p>Select a production date to see user availability.</p>
                 </div>
             </div>
 
@@ -207,6 +204,6 @@ try {
         </form>
     </main>
 
-    <script src="js/dashboard.js"></script>
+    <script src="js/schedule.js"></script>
 </body>
-</html> 
+</html>

@@ -39,4 +39,88 @@ function deleteSchedule(scheduleId) {
             alert('Error deleting schedule');
         });
     }
-} 
+}
+
+function checkEquipmentAvailability() {
+    const date = document.getElementById('schedule_date').value;
+
+    if (date) {
+        fetch(`add_schedule.php?date_equipment=${date}`)
+            .then(response => response.json())
+            .then(data => {
+                const equipmentContainer = document.getElementById('equipment-selection');
+                equipmentContainer.innerHTML = ''; // Clear existing content
+
+                data.forEach(equipment => {
+                    const equipmentLabel = document.createElement('label');
+                    equipmentLabel.classList.add('equipment-checkbox');
+
+                    const equipmentCheckbox = equipment.availability_status === 'Available'
+                        ? `<input type="checkbox" name="equipment[]" value="${equipment.equipment_id}">`
+                        : '';
+
+                    const equipmentStatus = `
+                        <span class="status ${equipment.availability_status.toLowerCase()}">
+                            ${equipment.availability_status}
+                        </span>
+                    `;
+
+                    equipmentLabel.innerHTML = `
+                        ${equipmentCheckbox}
+                        ${equipment.equipment_name} ${equipmentStatus}
+                    `;
+
+                    equipmentContainer.appendChild(equipmentLabel);
+                });
+            })
+            .catch(err => {
+                console.error('Error fetching equipment availability:', err);
+            });
+    }
+}
+
+
+function checkUserAvailability() {
+    const date = document.getElementById('schedule_date').value;
+
+    if (date) {
+        fetch(`add_schedule.php?date=${date}`)
+            .then(response => response.json())
+            .then(data => {
+                const userContainer = document.getElementById('user-availability');
+                userContainer.innerHTML = '';
+
+                data.forEach(user => {
+                    const userLabel = document.createElement('label');
+                    userLabel.classList.add('user-checkbox');
+
+                    const userCheckbox = user.availability_status === 'Available'
+                        ? `<input type="checkbox" name="assigned_users[]" value="${user.user_id}">`
+                        : '';
+
+                    const userStatus = `
+                        <span class="status ${user.availability_status.toLowerCase()}">
+                            ${user.availability_status}
+                        </span>
+                    `;
+
+                    userLabel.innerHTML = `
+                        ${userCheckbox}
+                        ${user.user_fullName} ${userStatus}
+                    `;
+
+                    userContainer.appendChild(userLabel);
+                });
+            })
+            .catch(err => {
+                console.error('Error fetching user availability:', err);
+            });
+    }
+}
+
+document.getElementById('schedule_date').addEventListener('change', () => {
+    checkEquipmentAvailability();
+    checkUserAvailability();
+});
+
+
