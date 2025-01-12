@@ -8,6 +8,9 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+/* Update the valid sort columns in view_batches.php */
+$valid_sort_columns = ['batch_id', 'recipe_name', 'schedule_date', 'batch_startTime', 'batch_status', 'quality_check']; 
+
 try {
     // Get filters
     $recipe_filter = $_GET['recipe'] ?? '';
@@ -53,7 +56,7 @@ try {
     $query .= " GROUP BY b.batch_id";
 
     // Add sorting
-    $valid_sort_columns = ['batch_id', 'recipe_name', 'schedule_date', 'batch_startTime', 'batch_status'];
+    $valid_sort_columns = ['batch_id', 'recipe_name', 'schedule_date', 'batch_startTime', 'batch_status', 'quality_check'];
     if (in_array($sort_by, $valid_sort_columns)) {
         $query .= " ORDER BY $sort_by $sort_order";
     }
@@ -177,6 +180,9 @@ function getSortIndicator($column) {
                                     Status <?php echo getSortIndicator('batch_status'); ?>
                                 </a>
                             </th>
+                            <th>
+                                <label for="quality_check">Quality Check</label>
+                            </th>
                             <th>Remarks</th>
                             <th>Actions</th>
                         </tr>
@@ -199,6 +205,11 @@ function getSortIndicator($column) {
                                         <span class="status-badge <?php echo strtolower(str_replace(' ', '-', $batch['batch_status'])); ?>">
                                             <?php echo $batch['batch_status']; ?>
                                         </span>
+                                    </td>
+                                    <td>
+                                        <div class="quality-comments">
+                                            <?php echo htmlspecialchars($batch['quality_check'] ?? '-'); ?>
+                                        </div>
                                     </td>
                                     <td class="remarks-cell"><?php echo htmlspecialchars($batch['batch_remarks'] ?? '-'); ?></td>
                                     <td class="actions">

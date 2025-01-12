@@ -34,15 +34,16 @@ CREATE TABLE `tbl_batches` (
   `batch_startTime` datetime NOT NULL DEFAULT current_timestamp(),
   `batch_endTime` datetime NOT NULL,
   `batch_status` enum('Pending','In Progress','Completed','') NOT NULL DEFAULT 'Pending',
-  `batch_remarks` text NOT NULL
+  `batch_remarks` text NOT NULL,
+  `quality_check` VARCHAR(255) NOT NULL DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `tbl_batches`
 --
 
-INSERT INTO `tbl_batches` (`batch_id`, `recipe_id`, `schedule_id`, `batch_startTime`, `batch_endTime`, `batch_status`, `batch_remarks`) VALUES
-(3, 9, 3, '2024-12-29 01:45:00', '2024-12-29 23:45:00', 'Pending', 'Abby is responsible to overview');
+INSERT INTO `tbl_batches` (`batch_id`, `recipe_id`, `schedule_id`, `batch_startTime`, `batch_endTime`, `batch_status`, `batch_remarks`, `quality_check`) VALUES
+(3, 9, 3, '2024-12-29 01:45:00', '2024-12-29 23:45:00', 'Pending', 'Abby is responsible to overview', 'Product not enough. Production could not meet the 1000 order requirement due to a shortage of raw materials, resulting in only 500 units being produced.');
 
 -- --------------------------------------------------------
 

@@ -63,6 +63,7 @@ try {
         $status = $_POST['status'];
         $remarks = $_POST['remarks'];
         $assignments = $_POST['assignments'] ?? [];
+        $quality_check = $_POST['quality_check'];
 
         // Update batch
         $stmt = $conn->prepare("UPDATE tbl_batches SET 
@@ -71,9 +72,10 @@ try {
                                 batch_startTime = ?,
                                 batch_endTime = ?,
                                 batch_status = ?,
-                                batch_remarks = ?
+                                batch_remarks = ?,
+                                quality_check = ?
                               WHERE batch_id = ?");
-        $stmt->execute([$recipe_id, $schedule_id, $start_time, $end_time, $status, $remarks, $batch_id]);
+        $stmt->execute([$recipe_id, $schedule_id, $start_time, $end_time, $status, $remarks, $quality_check, $batch_id]);
 
         // Delete existing assignments
         $stmt = $conn->prepare("DELETE FROM tbl_batch_assignments WHERE batch_id = ?");
@@ -200,6 +202,13 @@ try {
                 <div class="form-group">
                     <label for="remarks">Remarks</label>
                     <textarea id="remarks" name="remarks" rows="3"><?php echo htmlspecialchars($batch['batch_remarks'] ?? ''); ?></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="quality_check">Quality Check Comments</label>
+                    <textarea id="quality_check" name="quality_check" rows="3" 
+                              placeholder="Enter quality check comments, production issues, or quantity concerns..."
+                    ><?php echo htmlspecialchars($batch['quality_check'] ?? ''); ?></textarea>
                 </div>
             </div>
 

@@ -41,12 +41,13 @@ try {
         $end_time = $_POST['end_time'];
         $remarks = $_POST['remarks'];
         $assignments = $_POST['assignments'] ?? [];
+        $quality_check = $_POST['quality_check'];
 
         // Insert batch
         $stmt = $conn->prepare("INSERT INTO tbl_batches (recipe_id, schedule_id, batch_startTime, 
-                                                      batch_endTime, batch_remarks) 
-                              VALUES (?, ?, ?, ?, ?)");
-        $stmt->execute([$recipe_id, $schedule_id, $start_time, $end_time, $remarks]);
+                                                      batch_endTime, batch_remarks, quality_check) 
+                              VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$recipe_id, $schedule_id, $start_time, $end_time, $remarks, $quality_check]);
         
         $batch_id = $conn->lastInsertId();
 
@@ -183,6 +184,12 @@ try {
                 <button type="button" class="add-task-btn" onclick="addTask()">
                     <i class="fas fa-plus"></i> Add Another Task
                 </button>
+            </div>
+
+            <div class="form-group">
+                <label for="quality_check">Quality Check Comments</label>
+                <textarea id="quality_check" name="quality_check" rows="3" 
+                          placeholder="Enter quality check comments, production issues, or quantity concerns..."></textarea>
             </div>
 
             <div class="form-actions">

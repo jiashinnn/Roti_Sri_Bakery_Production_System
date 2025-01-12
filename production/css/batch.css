@@ -406,4 +406,24 @@
 .add-btn,
 .filter-btn {
     color: white;
-} 
+}
+
+/* Add styles for quality comments */
+.quality-comments {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.quality-comments:hover {
+    white-space: normal;
+    overflow: visible;
+    position: relative;
+    background: #fff;
+    z-index: 1;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 0.5rem;
+    border-radius: 4px;
+}
+
