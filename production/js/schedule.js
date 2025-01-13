@@ -123,5 +123,96 @@ document.getElementById('schedule_date').addEventListener('change', () => {
     checkUserAvailability();
 });
 
+document.addEventListener('DOMContentLoaded', function() {
+    const calculateBtn = document.getElementById('calculateBtn');
+    const recipeSelect = document.getElementById('recipe_id');
+    const orderVolume = document.getElementById('schedule_orderVolumn');
+
+    // Initially disable the calculate button
+    calculateBtn.disabled = true;
+    calculateBtn.style.opacity = '0.5';
+    calculateBtn.style.cursor = 'not-allowed';
+
+    // Enable/disable calculate button based on recipe selection
+    recipeSelect.addEventListener('change', function() {
+        if (this.value) {
+            calculateBtn.disabled = false;
+            calculateBtn.style.opacity = '1';
+            calculateBtn.style.cursor = 'pointer';
+        } else {
+            calculateBtn.disabled = true;
+            calculateBtn.style.opacity = '0.5';
+            calculateBtn.style.cursor = 'not-allowed';
+        }
+    });
+
+    function calculateBatchAndQuantity() {
+        const orderVolumeValue = orderVolume.value;
+        const selectedOption = recipeSelect.options[recipeSelect.selectedIndex];
+
+        // Clear previous calculation info
+        document.getElementById('calculation-info').innerHTML = '';
+        document.getElementById('batch-calculation').innerHTML = '';
+        document.getElementById('quantity-calculation').innerHTML = '';
+
+        // Check if recipe is selected
+        if (!recipeSelect.value) {
+            alert('Please select a recipe first.');
+            return;
+        }
+
+        // Check if order volume is filled
+        if (!orderVolumeValue || orderVolumeValue <= 0) {
+            alert('Please enter a valid order volume (must be greater than 0).');
+            orderVolume.focus();
+            return;
+        }
+
+        try {
+            const batchSize = parseFloat(selectedOption.getAttribute('data-batch-size'));
+            const recipeName = selectedOption.text;
+
+            // Calculate number of batches (rounded up)
+            const rawBatches = orderVolumeValue / batchSize;
+            const numBatches = Math.ceil(rawBatches);
+
+            // Calculate actual quantity to produce
+            const quantity = numBatches * batchSize;
+
+            // Update the form fields
+            document.getElementById('schedule_batchNum').value = numBatches;
+            document.getElementById('quantity').value = quantity;
+
+            // Show calculation details
+            document.getElementById('calculation-info').innerHTML =
+                `Selected recipe: ${recipeName} (Batch size: ${batchSize} units)`;
+
+            document.getElementById('batch-calculation').innerHTML =
+                `${orderVolumeValue} units ÷ ${batchSize} units per batch = ${rawBatches.toFixed(2)} → Rounded up to ${numBatches} batches`;
+
+            document.getElementById('quantity-calculation').innerHTML =
+                `${numBatches} batches × ${batchSize} units per batch = ${quantity} units total`;
+
+        } catch (error) {
+            console.error('Calculation error:', error);
+            alert('An error occurred during calculation. Please check your inputs and try again.');
+        }
+    }
+
+    // Add event listeners
+    calculateBtn.addEventListener('click', function(e) {
+        e.preventDefault(); // Prevent form submission
+        calculateBatchAndQuantity();
+    });
+
+    // Also calculate when Enter is pressed in the order volume field
+    orderVolume.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // Prevent form submission
+            calculateBatchAndQuantity();
+        }
+    });
+});
+
 
 

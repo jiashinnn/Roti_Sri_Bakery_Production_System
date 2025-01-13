@@ -12,12 +12,19 @@ $success_message = '';
 $error_message = '';
 
 try {
-    // Get recipes
-    $stmt = $conn->query("SELECT recipe_id, recipe_name FROM tbl_recipe ORDER BY recipe_name");
+    // Get recipes that have schedules
+    $stmt = $conn->query("SELECT DISTINCT r.recipe_id, r.recipe_name 
+                         FROM tbl_recipe r
+                         INNER JOIN tbl_schedule s ON r.recipe_id = s.recipe_id
+                         WHERE s.schedule_status != 'Completed'
+                         ORDER BY r.recipe_name");
     $recipes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Get schedules
-    $stmt = $conn->query("SELECT s.schedule_id, r.recipe_name, s.schedule_date 
+    $stmt = $conn->query("SELECT s.schedule_id, r.recipe_id, r.recipe_name, s.schedule_date,
+                         s.schedule_batchNum,
+                         (SELECT COUNT(*) FROM tbl_batches WHERE schedule_id = s.schedule_id) as assigned_batches,
+                         (SELECT COUNT(*) FROM tbl_batches WHERE schedule_id = s.schedule_id AND batch_status = 'Completed') as completed_batches
                          FROM tbl_schedule s 
                          JOIN tbl_recipe r ON s.recipe_id = r.recipe_id 
                          WHERE s.schedule_status != 'Completed'
@@ -123,15 +130,44 @@ try {
 
                 <div class="form-group">
                     <label for="schedule_id">Production Schedule</label>
-                    <select id="schedule_id" name="schedule_id" required>
-                        <option value="">Select Schedule</option>
+                    <select id="schedule_id" name="schedule_id" required disabled>
+                        <option value="">Select Recipe First</option>
                         <?php foreach ($schedules as $schedule): ?>
-                            <option value="<?php echo $schedule['schedule_id']; ?>">
+                            <?php 
+                                $remaining_batches = $schedule['schedule_batchNum'] - $schedule['assigned_batches'];
+                            ?>
+                            <option value="<?php echo $schedule['schedule_id']; ?>" 
+                                    data-recipe="<?php echo $schedule['recipe_id']; ?>"
+                                    data-total="<?php echo $schedule['schedule_batchNum']; ?>"
+                                    data-assigned="<?php echo $schedule['assigned_batches']; ?>"
+                                    data-completed="<?php echo $schedule['completed_batches']; ?>"
+                                    data-remaining="<?php echo $remaining_batches; ?>">
                                 <?php echo htmlspecialchars($schedule['recipe_name'] . ' - ' . 
                                       date('M d, Y', strtotime($schedule['schedule_date']))); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
+                </div>
+
+                <div class="batch-info" style="display: none;">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Total Batches Required:</label>
+                            <span id="total-batches">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Assigned Batches:</label>
+                            <span id="assigned-batches">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Completed Batches:</label>
+                            <span id="completed-batches">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Unassigned Batches:</label>
+                            <span id="remaining-batches">-</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-row">

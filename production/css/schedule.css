@@ -216,15 +216,36 @@
 }
 
 .status-badge {
-    padding: 0.3rem 0.8rem;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    color: white;
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: inline-block;
+    text-align: center;
+    min-width: 100px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.status-badge.pending { background: #ffc107; }
-.status-badge.in-progress { background: #007bff; }
-.status-badge.completed { background: #28a745; }
+.status-badge.pending {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.status-badge.in-progress {
+    background-color: #0d6efd;
+    color: #fff;
+}
+
+.status-badge.completed {
+    background-color: #28a745;
+    color: #fff;
+}
+
+.status-badge:hover {
+    opacity: 0.95;
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+}
 
 .actions {
     display: flex;
@@ -462,9 +483,16 @@
     display: flex;
     align-items: center;
     gap: 5px;
+    transition: all 0.3s ease;
 }
 
-.calculate-btn:hover {
+.calculate-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.calculate-btn:not(:disabled):hover {
     background-color: #45a049;
 }
 
@@ -636,4 +664,23 @@
     .equipment-checkbox {
         flex: 0 0 100%;
     }
+}
+
+.btn.edit-btn[disabled] {
+    background-color: #cccccc;
+    pointer-events: none;
+}
+
+/* Style for form fields in completed schedules */
+form.schedule-form.completed input,
+form.schedule-form.completed select,
+form.schedule-form.completed button[type="submit"] {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Style for the status select when schedule is completed */
+form.schedule-form.completed #status {
+    background-color: #e9ecef;
+    cursor: not-allowed;
 }

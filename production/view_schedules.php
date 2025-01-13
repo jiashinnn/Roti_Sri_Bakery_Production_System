@@ -210,9 +210,15 @@ function getSortLink($field, $current_sort, $current_order) {
                                     <td><?php echo htmlspecialchars($schedule['schedule_orderVolumn']) . " units"; ?></td>
                                     <td><?php echo htmlspecialchars($schedule['assigned_equipment'] ?? 'No equipment assigned'); ?></td>
                                     <td class="actions">
-                                        <a href="edit_schedule.php?id=<?php echo $schedule['schedule_id']; ?>" class="edit-btn" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
+                                        <?php if ($schedule['schedule_status'] !== 'Completed'): ?>
+                                            <a href="edit_schedule.php?id=<?php echo $schedule['schedule_id']; ?>" class="btn edit-btn">
+                                                <i class="fas fa-edit"></i> 
+                                            </a>
+                                        <?php else: ?>
+                                            <button class="btn edit-btn" disabled style="opacity: 0.5; cursor: not-allowed;">
+                                                <i class="fas fa-edit"></i> 
+                                            </button>
+                                        <?php endif; ?>
                                         <button class="delete-btn" onclick="deleteSchedule(<?php echo $schedule['schedule_id']; ?>)" title="Delete">
                                             <i class="fas fa-trash"></i>
                                         </button>

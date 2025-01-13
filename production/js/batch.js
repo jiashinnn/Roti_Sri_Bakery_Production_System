@@ -102,4 +102,55 @@ function deleteBatch(batchId) {
             alert('Error deleting batch');
         });
     }
-} 
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const recipeSelect = document.getElementById('recipe_id');
+    const scheduleSelect = document.getElementById('schedule_id');
+
+    recipeSelect.addEventListener('change', function() {
+        const selectedRecipeId = this.value;
+        scheduleSelect.disabled = !selectedRecipeId;
+
+        // Reset schedule select
+        Array.from(scheduleSelect.options).forEach(option => {
+            const recipeId = option.getAttribute('data-recipe');
+            if (!selectedRecipeId || option.value === '') {
+                option.style.display = '';
+            } else {
+                option.style.display = recipeId === selectedRecipeId ? '' : 'none';
+            }
+        });
+
+        // Reset schedule selection
+        scheduleSelect.value = '';
+
+        // If no matching schedules are found, show a message
+        const hasVisibleOptions = Array.from(scheduleSelect.options).some(option => 
+            option.style.display === '' && option.value !== '');
+        
+        if (!hasVisibleOptions) {
+            const noScheduleOption = new Option('No schedules available for this recipe', '');
+            scheduleSelect.innerHTML = '';
+            scheduleSelect.add(noScheduleOption);
+        }
+
+        // Hide batch info when recipe changes
+        document.querySelector('.batch-info').style.display = 'none';
+    });
+
+    scheduleSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const batchInfo = document.querySelector('.batch-info');
+        
+        if (this.value) {
+            document.getElementById('total-batches').textContent = selectedOption.dataset.total;
+            document.getElementById('assigned-batches').textContent = selectedOption.dataset.assigned;
+            document.getElementById('completed-batches').textContent = selectedOption.dataset.completed;
+            document.getElementById('remaining-batches').textContent = selectedOption.dataset.remaining;
+            batchInfo.style.display = 'block';
+        } else {
+            batchInfo.style.display = 'none';
+        }
+    });
+}); 

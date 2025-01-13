@@ -99,12 +99,23 @@ if (isset($_GET['date'])) {
 }
 
 try {
-    // Get schedule details
-    $stmt = $conn->prepare("SELECT * FROM tbl_schedule WHERE schedule_id = ?");
+    // Get schedule details including completed batches count
+    $stmt = $conn->prepare("SELECT s.*, 
+                           (SELECT COUNT(*) FROM tbl_batches WHERE schedule_id = s.schedule_id) as assigned_batches,
+                           (SELECT COUNT(*) FROM tbl_batches WHERE schedule_id = s.schedule_id AND batch_status = 'Completed') as completed_batches
+                           FROM tbl_schedule s 
+                           WHERE s.schedule_id = ?");
     $stmt->execute([$schedule_id]);
     $schedule = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$schedule) {
+        header("Location: view_schedules.php");
+        exit();
+    }
+
+    // Add this near the start of the file, after fetching the schedule
+    if ($schedule['schedule_status'] === 'Completed') {
+        $_SESSION['error'] = "Completed schedules cannot be edited.";
         header("Location: view_schedules.php");
         exit();
     }
@@ -261,7 +272,7 @@ try {
             <div class="alert error"><?php echo $error_message; ?></div>
         <?php endif; ?>
 
-        <form method="POST" class="schedule-form">
+        <form method="POST" class="schedule-form <?php echo $schedule['schedule_status'] === 'Completed' ? 'completed' : ''; ?>">
             <div class="form-section">
                 <h2>Schedule Details</h2>
 
@@ -500,6 +511,48 @@ try {
         if (document.getElementById('schedule_date').value) {
             checkAvailability();
         }
+
+        document.querySelector('form.schedule-form').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
+
+            const currentStatus = '<?php echo $schedule['schedule_status']; ?>';
+            const newStatus = document.getElementById('status').value;
+            
+            // If schedule is already completed, prevent any changes
+            if (currentStatus === 'Completed') {
+                alert('This schedule is already completed and cannot be modified.');
+                return false;
+            }
+            
+            // If the new status is Completed, show confirmation dialog
+            if (newStatus === 'Completed') {
+                const confirmed = confirm(
+                    "Are you sure you want to mark this schedule as Completed?\n\n" +
+                    "Warning: Once completed, this schedule cannot be edited again."
+                );
+                
+                if (!confirmed) {
+                    return false;
+                }
+            }
+            
+            // If confirmed or not changing to Completed, submit the form
+            this.submit();
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusSelect = document.getElementById('status');
+            const totalBatches = <?php echo $schedule['schedule_batchNum']; ?>;
+            const completedBatches = <?php echo $schedule['completed_batches']; ?>;
+
+            statusSelect.addEventListener('change', function() {
+                if (this.value === 'Completed' && completedBatches < totalBatches) {
+                    alert(`Cannot mark schedule as completed. Only ${completedBatches} out of ${totalBatches} batches are completed.`);
+                    // Reset to previous value
+                    this.value = '<?php echo $schedule['schedule_status']; ?>';
+                }
+            });
+        });
     </script>
 </body>
 

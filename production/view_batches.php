@@ -24,7 +24,8 @@ try {
     $recipes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Base query
-    $query = "SELECT b.*, r.recipe_name, s.schedule_date,
+    $query = "SELECT b.*, r.recipe_name, s.schedule_date, s.schedule_batchNum,
+              (SELECT COUNT(*) FROM tbl_batches WHERE schedule_id = b.schedule_id) as assigned_batches,
               GROUP_CONCAT(DISTINCT CONCAT(u.user_fullName, ' (', ba.ba_task, ')') SEPARATOR ', ') as assigned_users
               FROM tbl_batches b
               LEFT JOIN tbl_recipe r ON b.recipe_id = r.recipe_id
@@ -64,6 +65,18 @@ try {
     $stmt = $conn->prepare($query);
     $stmt->execute($params);
     $batches = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Add this before the statistics section
+    if ($recipe_filter) {
+        // Get current schedule information and completed batches count
+        $stmt = $conn->prepare("SELECT s.*, 
+                               (SELECT COUNT(*) FROM tbl_batches WHERE schedule_id = s.schedule_id) as assigned_batches,
+                               (SELECT COUNT(*) FROM tbl_batches WHERE schedule_id = s.schedule_id AND batch_status = 'Completed') as completed_batches
+                               FROM tbl_schedule s 
+                               WHERE s.recipe_id = ?");
+        $stmt->execute([$recipe_filter]);
+        $currentSchedule = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 
 } catch(PDOException $e) {
     $error_message = "Error: " . $e->getMessage();
@@ -213,11 +226,14 @@ function getSortIndicator($column) {
                                     </td>
                                     <td class="remarks-cell"><?php echo htmlspecialchars($batch['batch_remarks'] ?? '-'); ?></td>
                                     <td class="actions">
-                                        <a href="edit_batch.php?id=<?php echo $batch['batch_id']; ?>" class="action-btn edit-btn" title="Edit">
-                                            <i class="fas fa-edit"></i> Edit
+                                        <a href="edit_batch.php?id=<?php echo $batch['batch_id']; ?>" 
+                                           class="action-btn edit-btn <?php echo ($batch['batch_status'] === 'Completed') ? 'disabled' : ''; ?>" 
+                                           title="Edit"
+                                           <?php echo ($batch['batch_status'] === 'Completed') ? 'onclick="return false;"' : ''; ?>>
+                                            <i class="fas fa-edit"></i> 
                                         </a>
                                         <button class="action-btn delete-btn" onclick="deleteBatch(<?php echo $batch['batch_id']; ?>)" title="Delete">
-                                            <i class="fas fa-trash"></i> Delete
+                                            <i class="fas fa-trash"></i> 
                                         </button>
                                     </td>
                                 </tr>
@@ -225,6 +241,32 @@ function getSortIndicator($column) {
                         <?php endif; ?>
                     </tbody>
                 </table>
+            </div>
+
+            <div class="batch-info">
+                <?php if (isset($currentSchedule)): ?>
+                    <?php
+                    $remaining_batches = $currentSchedule['schedule_batchNum'] - $currentSchedule['assigned_batches'];
+                    ?>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Total Batches Required:</label>
+                            <span><?php echo $currentSchedule['schedule_batchNum']; ?></span>
+                        </div>
+                        <div class="info-item">
+                            <label>Assigned Batches:</label>
+                            <span><?php echo $currentSchedule['assigned_batches']; ?></span>
+                        </div>
+                        <div class="info-item">
+                            <label>Completed Batches:</label>
+                            <span><?php echo $currentSchedule['completed_batches']; ?></span>
+                        </div>
+                        <div class="info-item">
+                            <label>Unassigned Batches:</label>
+                            <span><?php echo $remaining_batches; ?></span>
+                        </div>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </main>

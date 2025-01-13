@@ -77,6 +77,7 @@ try {
                            JOIN tbl_schedule s ON sa.schedule_id = s.schedule_id 
                            WHERE sa.user_id = u.user_id 
                            AND DATE(s.schedule_date) = ?
+                           AND s.schedule_status != 'Completed'
                        ) THEN 'Unavailable'
                        ELSE 'Available'
                    END AS availability_status
@@ -105,6 +106,7 @@ try {
                            JOIN tbl_schedule s ON se.schedule_id = s.schedule_id 
                            WHERE se.equipment_id = e.equipment_id 
                            AND DATE(s.schedule_date) = ?
+                           AND s.schedule_status != 'Completed'
                        ) THEN 'In-Use'
                        ELSE 'Available'
                    END AS availability_status
