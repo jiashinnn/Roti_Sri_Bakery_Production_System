@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 13, 2025 at 04:34 AM
+-- Generation Time: Jan 13, 2025 at 01:16 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -38,6 +38,17 @@ CREATE TABLE `tbl_batches` (
   `quality_check` varchar(255) NOT NULL DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `tbl_batches`
+--
+
+INSERT INTO `tbl_batches` (`batch_id`, `recipe_id`, `schedule_id`, `batch_startTime`, `batch_endTime`, `batch_status`, `batch_remarks`, `quality_check`) VALUES
+(4, 4, 8, '2025-01-13 16:43:00', '2025-01-13 19:43:00', 'Completed', '', ''),
+(5, 4, 8, '2025-01-14 17:11:00', '2025-01-14 19:11:00', 'Completed', '', ''),
+(6, 4, 8, '2025-01-15 19:13:00', '2025-01-15 20:13:00', 'Completed', '', ''),
+(7, 4, 8, '2025-01-13 16:07:00', '2025-01-13 18:07:00', 'Completed', '', ''),
+(8, 4, 8, '2025-01-13 09:08:00', '2025-01-13 09:08:00', 'Completed', '', '');
+
 -- --------------------------------------------------------
 
 --
@@ -51,6 +62,20 @@ CREATE TABLE `tbl_batch_assignments` (
   `ba_task` varchar(255) NOT NULL,
   `ba_status` enum('Pending','In Progress','Completed','') NOT NULL DEFAULT 'Pending'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `tbl_batch_assignments`
+--
+
+INSERT INTO `tbl_batch_assignments` (`ba_id`, `batch_id`, `user_id`, `ba_task`, `ba_status`) VALUES
+(15, 6, 17, 'Mixing', 'Pending'),
+(16, 5, 15, 'Mixing', 'Pending'),
+(17, 5, 16, 'Baking', 'Pending'),
+(18, 5, 20, 'Decorating', 'Pending'),
+(21, 4, 15, 'Mixing', 'Pending'),
+(22, 4, 18, 'Baking', 'Pending'),
+(25, 7, 17, 'Baking', 'Pending'),
+(26, 8, 18, 'Mixing', 'Pending');
 
 -- --------------------------------------------------------
 
@@ -71,11 +96,11 @@ CREATE TABLE `tbl_equipments` (
 --
 
 INSERT INTO `tbl_equipments` (`equipment_id`, `equipment_name`, `equipment_description`, `equipment_status`, `equipment_dateAdded`) VALUES
-(1, 'Mixer A', 'Industrial dough mixer - 50L capacity', 'Available', '2025-01-10 13:37:17'),
+(1, 'Mixer A', 'Industrial dough mixer - 50L capacity', '', '2025-01-10 13:37:17'),
 (2, 'Mixer B', 'Industrial dough mixer - 100L capacity', 'Available', '2025-01-10 13:37:17'),
-(3, 'Oven 1', 'Deck oven - 3 decks', 'Available', '2025-01-10 13:38:05'),
+(3, 'Oven 1', 'Deck oven - 3 decks', '', '2025-01-10 13:38:05'),
 (4, 'Oven 2', 'Convection oven', 'Available', '2025-01-10 13:38:05'),
-(5, 'Proofer 1', 'Walk-in proofer', 'Available', '2025-01-10 13:39:53'),
+(5, 'Proofer 1', 'Walk-in proofer', '', '2025-01-10 13:39:53'),
 (6, 'Sheeter 1', 'Dough sheeter - medium capacity', 'Available', '2025-01-10 13:39:53');
 
 -- --------------------------------------------------------
@@ -218,7 +243,9 @@ CREATE TABLE `tbl_schedule` (
 
 INSERT INTO `tbl_schedule` (`schedule_id`, `recipe_id`, `schedule_date`, `schedule_quantityToProduce`, `schedule_orderVolumn`, `schedule_status`, `schedule_batchNum`) VALUES
 (6, 1, '2025-01-14', 32, 30, 'Pending', 8),
-(7, 2, '2025-01-15', 36, 30, 'Pending', 3);
+(7, 2, '2025-01-15', 36, 30, 'In Progress', 3),
+(8, 4, '2025-01-16', 10, 10, 'Completed', 5),
+(9, 5, '2025-01-13', 48, 40, 'Pending', 2);
 
 -- --------------------------------------------------------
 
@@ -238,9 +265,12 @@ CREATE TABLE `tbl_schedule_assignments` (
 --
 
 INSERT INTO `tbl_schedule_assignments` (`sa_id`, `schedule_id`, `user_id`, `sa_dateAssigned`) VALUES
-(17, 6, 17, '2025-01-12 16:34:48'),
-(18, 6, 14, '2025-01-12 16:34:48'),
-(19, 7, 16, '2025-01-12 17:25:46');
+(22, 7, 14, '2025-01-13 07:31:27'),
+(29, 9, 18, '2025-01-13 09:45:56'),
+(30, 6, 17, '2025-01-13 12:01:17'),
+(31, 6, 14, '2025-01-13 12:01:17'),
+(32, 8, 19, '2025-01-13 12:09:58'),
+(33, 8, 14, '2025-01-13 12:09:58');
 
 -- --------------------------------------------------------
 
@@ -260,9 +290,13 @@ CREATE TABLE `tbl_schedule_equipment` (
 --
 
 INSERT INTO `tbl_schedule_equipment` (`se_id`, `schedule_id`, `equipment_id`, `se_dateAssigned`) VALUES
-(12, 6, 1, '2025-01-13 00:34:48.739507'),
-(13, 6, 3, '2025-01-13 00:34:48.739622'),
-(14, 7, 5, '2025-01-13 01:25:46.421889');
+(18, 7, 3, '2025-01-13 15:31:27.236068'),
+(19, 7, 5, '2025-01-13 15:31:27.236899'),
+(26, 9, 1, '2025-01-13 17:45:56.211112'),
+(27, 6, 1, '2025-01-13 20:01:17.208562'),
+(28, 6, 3, '2025-01-13 20:01:17.208747'),
+(29, 8, 1, '2025-01-13 20:09:58.507312'),
+(30, 8, 3, '2025-01-13 20:09:58.507424');
 
 -- --------------------------------------------------------
 
@@ -294,7 +328,8 @@ INSERT INTO `tbl_users` (`user_id`, `user_fullName`, `user_contact`, `user_addre
 (16, 'Aurora', '0123456789', 'Kedah', 'aurora@gmail.com', '$2y$10$EfeC4D4e6C2XFTUMbJjxXO.MJ2OvHtSwpYGztV.Hh5WxSxwcXdbA.', '2024-12-29 16:40:12', 'Baker', NULL, NULL),
 (17, 'Irdina', '0123456789', 'Kedah', 'irdina@gmail.com', '$2y$10$NpmQZqhTTp4YOGvN4DGNkeoKdZ2oiB6UJGrI4f/cCStUpNt2CWbVK', '2024-12-29 16:41:00', 'Baker', NULL, NULL),
 (18, 'Alia', '0123456789', 'Kedah', 'alia@gmail.com', '$2y$10$px1H5SauACBIugoCce/aPehQol8A7tS9w6qza4W/LB7OUQv4apSBO', '2024-12-29 16:42:41', 'Baker', NULL, NULL),
-(19, 'Yungjie', '0123456789', '1234567890', 'yungjielee@gmail.com', '$2y$10$7kI7/iEFumEnHNWqVdYoHeBlNZjwML.kDhDQ2aAY6mqeb2E3oGvka', '2025-01-13 04:25:43', 'Baker', NULL, NULL);
+(19, 'Yungjie', '0123456789', '1234567890', 'yungjielee@gmail.com', '$2y$10$7kI7/iEFumEnHNWqVdYoHeBlNZjwML.kDhDQ2aAY6mqeb2E3oGvka', '2025-01-13 04:25:43', 'Baker', NULL, NULL),
+(20, 'Jaslyn', '0123456789', 'Kedah', 'mylittlepony000101@gmail.com', '$2y$10$XO8Tdo9NeLIafi3nH257/.O1jhHoXel0Mrecfl7Xn/rzCDvp92gyC', '2025-01-13 09:02:27', 'Baker', '39bda9c939952785bec958e4792385ab8905a93f5914298b3b4448da06e8576de1d5112bd1524676528b4144b17b3d49175d', '2025-01-13 09:33:38');
 
 --
 -- Indexes for dumped tables
@@ -372,13 +407,13 @@ ALTER TABLE `tbl_users`
 -- AUTO_INCREMENT for table `tbl_batches`
 --
 ALTER TABLE `tbl_batches`
-  MODIFY `batch_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `batch_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `tbl_batch_assignments`
 --
 ALTER TABLE `tbl_batch_assignments`
-  MODIFY `ba_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `ba_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `tbl_equipments`
@@ -402,25 +437,25 @@ ALTER TABLE `tbl_recipe`
 -- AUTO_INCREMENT for table `tbl_schedule`
 --
 ALTER TABLE `tbl_schedule`
-  MODIFY `schedule_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `schedule_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `tbl_schedule_assignments`
 --
 ALTER TABLE `tbl_schedule_assignments`
-  MODIFY `sa_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `sa_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT for table `tbl_schedule_equipment`
 --
 ALTER TABLE `tbl_schedule_equipment`
-  MODIFY `se_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `se_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT for table `tbl_users`
 --
 ALTER TABLE `tbl_users`
-  MODIFY `user_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `user_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- Constraints for dumped tables
