@@ -159,6 +159,14 @@ function getSortLink($field, $current_sort, $current_order) {
                                 </a>
                             </th>
                             <th>Quantity</th>
+                            <th>
+                                <a href="<?php echo getSortLink('schedule_batchNum', $sort_by, $sort_order); ?>" class="sort-link">
+                                    Number of Batch
+                                    <?php if ($sort_by === 'schedule_batchNum'): ?>
+                                        <i class="fas fa-sort-<?php echo $sort_order === 'ASC' ? 'up' : 'down'; ?>"></i>
+                                    <?php endif; ?>
+                                </a>
+                            </th>
                             <th>Assigned Users</th>
                             <th>
                                 <a href="<?php echo getSortLink('schedule_status', $sort_by, $sort_order); ?>" class="sort-link">
@@ -183,7 +191,7 @@ function getSortLink($field, $current_sort, $current_order) {
                     <tbody>
                         <?php if (empty($schedules)): ?>
                             <tr>
-                                <td colspan="7" class="no-records">No schedules found</td>
+                                <td colspan="8" class="no-records">No schedules found</td>
                             </tr>
                         <?php else: ?>
                             <?php foreach ($schedules as $schedule): ?>
@@ -192,6 +200,7 @@ function getSortLink($field, $current_sort, $current_order) {
                                     <td><?php echo htmlspecialchars($schedule['recipe_name']); ?></td>
                                     <td><?php echo date('M d, Y', strtotime($schedule['schedule_date'])); ?></td>
                                     <td><?php echo $schedule['schedule_quantityToProduce']; ?></td>
+                                    <td><?php echo $schedule['schedule_batchNum']; ?></td>
                                     <td><?php echo htmlspecialchars($schedule['assigned_users'] ?? 'No users assigned'); ?></td>
                                     <td>
                                         <span class="status-badge <?php echo strtolower(str_replace(' ', '-', $schedule['schedule_status'])); ?>">
