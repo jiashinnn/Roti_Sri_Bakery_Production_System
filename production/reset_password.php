@@ -51,6 +51,7 @@ if (isset($_GET['token'])) {
     <title>Reset Password</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/login.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
     <main>
@@ -63,19 +64,30 @@ if (isset($_GET['token'])) {
                 <form method="POST" class="reset-form">
                     <div class="form-group">
                         <label for="password">New Password</label>
-                        <input type="password" id="password" name="password" required>
+                        <div class="password-field">
+                            <input type="password" id="password" name="password" required>
+                            <button type="button" class="toggle-password" onclick="togglePassword('password')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="confirm_password">Confirm Password</label>
-                        <input type="password" id="confirm_password" name="confirm_password" required>
+                        <div class="password-field">
+                            <input type="password" id="confirm_password" name="confirm_password" required>
+                            <button type="button" class="toggle-password" onclick="togglePassword('confirm_password')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
                     <button type="submit" class="login-submit-btn">Reset Password</button>
                     <div class="form-links">
-                    <a href="login.php" class="forgot-password">Back to Login</a>
-                </div>
+                        <a href="login.php" class="forgot-password">Back to Login</a>
+                    </div>
                 </form>
             <?php endif; ?>
         </div>
     </main>
+    <script src="js/reset_password.js"></script>
 </body>
 </html>
