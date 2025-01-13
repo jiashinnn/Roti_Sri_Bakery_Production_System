@@ -73,9 +73,12 @@ try {
                                (SELECT COUNT(*) FROM tbl_batches WHERE schedule_id = s.schedule_id) as assigned_batches,
                                (SELECT COUNT(*) FROM tbl_batches WHERE schedule_id = s.schedule_id AND batch_status = 'Completed') as completed_batches
                                FROM tbl_schedule s 
-                               WHERE s.recipe_id = ?");
+                               WHERE s.recipe_id = ? 
+                               AND s.schedule_status != 'Completed'
+                               ORDER BY s.schedule_date DESC 
+                               LIMIT 1");
         $stmt->execute([$recipe_filter]);
-        $currentSchedule = $stmt->fetch(PDO::FETCH_ASSOC);
+        $currentSchedule = $stmt->fetch();
     }
 
 } catch(PDOException $e) {
@@ -244,7 +247,7 @@ function getSortIndicator($column) {
             </div>
 
             <div class="batch-info">
-                <?php if (isset($currentSchedule)): ?>
+                <?php if (isset($currentSchedule) && $currentSchedule): ?>
                     <?php
                     $remaining_batches = $currentSchedule['schedule_batchNum'] - $currentSchedule['assigned_batches'];
                     ?>
@@ -265,6 +268,10 @@ function getSortIndicator($column) {
                             <label>Unassigned Batches:</label>
                             <span><?php echo $remaining_batches; ?></span>
                         </div>
+                    </div>
+                <?php elseif ($recipe_filter): ?>
+                    <div class="info-message">
+                        No active production schedule found for this recipe.
                     </div>
                 <?php endif; ?>
             </div>

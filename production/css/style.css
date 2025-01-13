@@ -130,4 +130,29 @@ footer {
     opacity: 0.8;
     white-space: nowrap;
     order: 1;
+}
+
+.error-message {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+input.invalid {
+    border-color: #dc3545;
+}
+
+input.invalid:focus {
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.password-requirements {
+    font-size: 0.875rem;
+    color: #666;
+    margin-top: 0.5rem;
+}
+
+/* Add transition for smooth error display */
+.error-message {
+    transition: all 0.3s ease;
 } 

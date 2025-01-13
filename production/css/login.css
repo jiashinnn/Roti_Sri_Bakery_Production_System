@@ -217,3 +217,34 @@ main {
     opacity: 0.8;
 }
 
+.reset-email-form {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.success-message {
+    color: #28a745;
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+}
+
+.back-to-login {
+    display: block;
+    margin-top: 1rem;
+    color: #6c757d;
+    text-decoration: none;
+}
+
+.back-to-login:hover {
+    color: #5a6268;
+    text-decoration: underline;
+}
+
+.form-links {
+    margin-top: 1rem;
+    text-align: center;
+}
+
