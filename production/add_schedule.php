@@ -8,6 +8,12 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+// Generate a CSRF token if not already created
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+
 $success_message = '';
 $error_message = '';
 $recipes = [];
@@ -21,6 +27,12 @@ try {
 
     // Handle form submission
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+        // Validate CSRF token
+        if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+            die("Invalid CSRF token");
+        }
+
         $conn->beginTransaction();
         try {
             // Get schedule details
@@ -31,6 +43,10 @@ try {
             $assigned_users = $_POST['assigned_users'] ?? [];
             $selected_equipment = $_POST['equipment'] ?? [];
             $schedule_batchNum = $_POST['schedule_batchNum'];
+
+            if (!is_numeric($quantity) || $quantity <= 0) { // Must be a positive number
+                die("Invalid quantity value");
+            }
 
             // Insert schedule
             $stmt = $conn->prepare("INSERT INTO tbl_schedule 
@@ -136,41 +152,6 @@ try {
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/schedule.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <style>
-    .calculation-info {
-        display: block;
-        color: #666;
-        font-size: 0.9em;
-        margin-top: 5px;
-        font-style: italic;
-    }
-    
-    .input-with-button {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-    }
-    
-    .calculate-btn {
-        padding: 8px 15px;
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-    
-    .calculate-btn:hover {
-        background-color: #45a049;
-    }
-    
-    .calculate-btn i {
-        font-size: 0.9em;
-    }
-    </style>
 </head>
 <body>
     <?php include 'includes/dashboard_navigation.php'; ?>
@@ -256,6 +237,10 @@ try {
                 </div>
             </div>
 
+            <!-- Add the CSRF token -->
+            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+
+
             <div class="form-actions">
                 <button type="submit" class="submit-btn">Create Schedule</button>
                 <a href="view_schedules.php" class="cancel-btn">Cancel</a>
@@ -263,62 +248,7 @@ try {
         </form>
     </main>
 
+    <script src="js/dashboard.js"></script>
     <script src="js/schedule.js"></script>
-    <script>
-    function calculateBatchAndQuantity() {
-        const recipeSelect = document.getElementById('recipe_id');
-        const orderVolume = document.getElementById('schedule_orderVolumn').value;
-        const selectedOption = recipeSelect.options[recipeSelect.selectedIndex];
-        
-        // Clear previous calculation info
-        document.getElementById('calculation-info').innerHTML = '';
-        document.getElementById('batch-calculation').innerHTML = '';
-        document.getElementById('quantity-calculation').innerHTML = '';
-        
-        if (orderVolume && selectedOption.value) {
-            const batchSize = parseFloat(selectedOption.getAttribute('data-batch-size'));
-            const recipeName = selectedOption.text;
-            
-            // Calculate number of batches (rounded up)
-            const rawBatches = orderVolume / batchSize;
-            const numBatches = Math.ceil(rawBatches);
-            
-            // Calculate actual quantity to produce
-            const quantity = numBatches * batchSize;
-            
-            // Update the form fields
-            document.getElementById('schedule_batchNum').value = numBatches;
-            document.getElementById('quantity').value = quantity;
-            
-            // Show calculation details
-            document.getElementById('calculation-info').innerHTML = 
-                `Selected recipe: ${recipeName} (Batch size: ${batchSize} units)`;
-            
-            document.getElementById('batch-calculation').innerHTML = 
-                `${orderVolume} units ÷ ${batchSize} units per batch = ${rawBatches.toFixed(2)} → Rounded up to ${numBatches} batches`;
-            
-            document.getElementById('quantity-calculation').innerHTML = 
-                `${numBatches} batches × ${batchSize} units per batch = ${quantity} units total`;
-        } else {
-            // Clear the fields if no recipe is selected or no order volume entered
-            document.getElementById('schedule_batchNum').value = '';
-            document.getElementById('quantity').value = '';
-        }
-    }
-
-    // Add event listeners
-    document.getElementById('calculateBtn').addEventListener('click', function(e) {
-        e.preventDefault(); // Prevent form submission
-        calculateBatchAndQuantity();
-    });
-    
-    // Also calculate when Enter is pressed in the order volume field
-    document.getElementById('schedule_orderVolumn').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault(); // Prevent form submission
-            calculateBatchAndQuantity();
-        }
-    });
-    </script>
 </body>
 </html>
