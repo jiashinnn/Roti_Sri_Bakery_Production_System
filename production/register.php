@@ -13,14 +13,32 @@ $fullname = $contact = $email = $address = $password = $confirm_password = '';
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
+        // CSRF token validation
+        if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+            throw new Exception('Invalid CSRF token.');
+        }
+
         // Retrieve and sanitize inputs
         $fullname = htmlspecialchars(trim($_POST['fullname']));
         $contact = htmlspecialchars(trim($_POST['contact']));
+
         $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
+        if (!$email) {
+            throw new Exception('Invalid email format.');
+        }
+
         $address = htmlspecialchars(trim($_POST['address']));
         $password = $_POST['password'];
         $confirm_password = $_POST['confirm_password'];
         $date_register = date('Y-m-d H:i:s');
+
+        // Validate passwords
+        if (strlen($password) < 8) {
+            throw new Exception('Password must be at least 8 characters long.');
+        }
+        if ($password !== $confirm_password) {
+            throw new Exception('Passwords do not match.');
+        }
 
         // Google reCAPTCHA secret key
         $secretKey = '6LdfV6gqAAAAABXRwPWBUejeSxE15Dys8D8OBbXk'; // Replace with your secret key
@@ -93,6 +111,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             alert('" . addslashes($e->getMessage()) . "');
         </script>";
     }
+}
+// Generate CSRF token
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 ?>
 
@@ -185,6 +207,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </button>
                     </div>
                 </div>
+                
+                <!-- CSRF Token -->
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 
                 <!-- Google reCAPTCHA -->
                 <div class='g-recaptcha' data-sitekey='6LdfV6gqAAAAACimut4s48YkS-jpSku0IGwCo76j'></div>

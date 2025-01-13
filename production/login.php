@@ -6,20 +6,29 @@ $error_message = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
-        $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
-        $password = $_POST['password'];
+        $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
+        if (!$email) {
+            throw new Exception('Invalid email format.');
+        }
 
-        // Prepare SQL
+        $password = $_POST['password'];
+        if (empty($password) || strlen($password) < 8) {
+            throw new Exception('Password must be at least 8 characters long.');
+        }
+
+        if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+            throw new Exception('Invalid CSRF token.');
+        }
+
         $stmt = $conn->prepare("SELECT * FROM tbl_users WHERE user_email = ?");
         $stmt->execute([$email]);
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['user_password'])) {
-            // Password is correct, start a new session
-            $_SESSION['user_id'] = $user['user_id'];
-            $_SESSION['user_fullName'] = $user['user_fullName'];
-            $_SESSION['user_email'] = $user['user_email'];
-            $_SESSION['user_role'] = $user['user_role'];
+            $_SESSION['user_id'] = htmlspecialchars($user['user_id']);
+            $_SESSION['user_fullName'] = htmlspecialchars($user['user_fullName']);
+            $_SESSION['user_email'] = htmlspecialchars($user['user_email']);
+            $_SESSION['user_role'] = htmlspecialchars($user['user_role']);
 
             echo "<script>
                 alert('Login successful!');
@@ -27,12 +36,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </script>";
             exit();
         } else {
-            $error_message = 'Invalid email or password!';
+            throw new Exception('Invalid email or password.');
         }
-
-    } catch(PDOException $e) {
-        $error_message = 'Login failed: ' . $e->getMessage();
+    } catch (Exception $e) {
+        $error_message = $e->getMessage();
     }
+}
+
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 ?>
 
@@ -64,9 +76,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <main>
         <div class="login-container">
             <h2>Welcome Back</h2>
+
             <?php if ($error_message): ?>
                 <div class="error-message"><?php echo htmlspecialchars($error_message); ?></div>
             <?php endif; ?>
+            
             <form method="POST" class="login-form">
                 <div class="form-group">
                     <label for="email">Email</label>
@@ -82,6 +96,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </button>
                     </div>
                 </div>
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 
                 <button type="submit" class="login-submit-btn">Login</button>
                 
@@ -94,6 +109,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </form>
         </div>
     </main>
+
+    
 
     <footer>
         <p class="footer-text">&copy; 2024 YSLProduction | Production System</p>
