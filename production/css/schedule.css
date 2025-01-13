@@ -437,3 +437,64 @@
     color: #fff;
     font-weight: bold;
 }
+
+.calculation-info {
+    display: block;
+    color: #666;
+    font-size: 0.9em;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+.input-with-button {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.calculate-btn {
+    padding: 8px 15px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.calculate-btn:hover {
+    background-color: #45a049;
+}
+
+.calculate-btn i {
+    font-size: 0.9em;
+}
+
+.availability-status {
+    margin-left: 8px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.85em;
+}
+
+.availability-status.available {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.availability-status.unavailable {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+.user-checkbox {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.user-checkbox input[type="checkbox"] {
+    margin-right: 8px;
+}
