@@ -43,6 +43,20 @@ try {
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
+        // Validate batch size
+        $recipe_batchSize = floatval($_POST['batch_size']);
+        if ($recipe_batchSize < 0.01) {
+            throw new Exception("Batch size cannot be less than 0.01");
+        }
+
+        // Validate ingredient quantities
+        $ingredient_quantities = $_POST['ingredient_quantity'];
+        foreach ($ingredient_quantities as $key => $quantity) {
+            if (floatval($quantity) < 0.01) {
+                throw new Exception("Ingredient quantity cannot be less than 0.01");
+            }
+        }
+
         $conn->beginTransaction();
 
         // Update recipe details
@@ -97,7 +111,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->execute([$recipe_id]);
         $ingredients = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    } catch(PDOException $e) {
+    } catch(Exception $e) {
         $conn->rollBack();
         $error_message = "Error: " . $e->getMessage();
     }
@@ -154,7 +168,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="batch_size">Batch Size</label>
-                        <input type="number" id="batch_size" name="batch_size" step="0.01" value="<?php echo $recipe['recipe_batchSize']; ?>" required>
+                        <input type="number" 
+                               id="batch_size" 
+                               name="batch_size" 
+                               step="0.01" 
+                               min="0.01" 
+                               value="<?php echo $recipe['recipe_batchSize']; ?>" 
+                               required 
+                               oninput="validateBatchSize(this)"
+                               onblur="validateBatchSize(this)">
                     </div>
                     <div class="form-group">
                         <label for="unit_of_measure">Unit of Measure</label>
@@ -190,11 +212,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <div class="ingredient-row">
                             <div class="form-group">
                                 <label>Ingredient Name</label>
-                                <input type="text" name="ingredient_name[]" value="<?php echo htmlspecialchars($ingredient['ingredient_name']); ?>" required>
+                                <input type="text" 
+                                       name="ingredient_name[]" 
+                                       value="<?php echo htmlspecialchars($ingredient['ingredient_name']); ?>" 
+                                       required>
                             </div>
                             <div class="form-group">
                                 <label>Quantity</label>
-                                <input type="number" name="ingredient_quantity[]" step="0.01" value="<?php echo $ingredient['ingredient_quantity']; ?>" required>
+                                <input type="number" 
+                                       name="ingredient_quantity[]" 
+                                       step="0.01" 
+                                       min="0.01" 
+                                       value="<?php echo $ingredient['ingredient_quantity']; ?>" 
+                                       required 
+                                       oninput="validateQuantity(this)"
+                                       onblur="validateQuantity(this)">
                             </div>
                             <div class="form-group">
                                 <label>Unit</label>

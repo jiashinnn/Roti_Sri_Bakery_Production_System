@@ -151,4 +151,19 @@
     color: #6c757d;
     font-size: 0.875rem;
     margin-top: 0.25rem;
+}
+
+.error-message {
+    display: block;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    color: #dc3545;
+}
+
+.form-group input:invalid {
+    border-color: #dc3545;
+}
+
+.form-group input:focus:invalid {
+    box-shadow: 0 0 0 0.2rem rgba(220,53,69,.25);
 } 
