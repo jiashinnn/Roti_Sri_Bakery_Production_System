@@ -1,5 +1,9 @@
 <?php
+// Initialize PHP session to maintain user state
 session_start();
+
+// Include database connection configuration
+// This file contains database credentials and connection setup
 require_once 'config/db_connection.php';
 
 // Check if user is logged in
@@ -20,6 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($_POST) && empty(file_get_con
 $input = json_decode(file_get_contents('php://input'), true);
 $recipe_id = $input['recipe_id'] ?? null;
 
+// Validate recipe ID parameter
+// If recipe_id is missing or empty, return error response and stop execution
 if (!$recipe_id) {
     header('Content-Type: application/json');
     echo json_encode(['success' => false, 'message' => 'Recipe ID is required']);
@@ -27,12 +33,16 @@ if (!$recipe_id) {
 }
 
 try {
+    // Begin database transaction
+    // This ensures all database operations are atomic (all succeed or all fail)
     $conn->beginTransaction();
 
-    // Check if recipe exists and belongs to the system
+    // Verify recipe existence and ownership
+    // Query checks if the recipe exists in the system using recipe_id
     $stmt = $conn->prepare("SELECT recipe_id FROM tbl_recipe WHERE recipe_id = ?");
     $stmt->execute([$recipe_id]);
     
+    // If no recipe found, throw exception to trigger error handling
     if (!$stmt->fetch()) {
         throw new Exception('Recipe not found');
     }
