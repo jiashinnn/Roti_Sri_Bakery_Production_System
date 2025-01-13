@@ -20,7 +20,7 @@ try {
     // Only fetch total bakers if the user is an Admin
     $total_bakers = null;
     if ($_SESSION['user_role'] === 'Admin') {
-        $stmt = $conn->query("SELECT COUNT(*) as total_bakers FROM tbl_users WHERE user_role = 'Baker'");
+        $stmt = $conn->query("SELECT COUNT(*) as total_bakers FROM tbl_users WHERE user_role = 'Baker' or user_role = 'Supervisor'");
         $total_bakers = $stmt->fetch(PDO::FETCH_ASSOC)['total_bakers'];
     }
 
