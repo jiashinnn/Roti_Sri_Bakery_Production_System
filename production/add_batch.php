@@ -2,10 +2,20 @@
 session_start();
 require_once 'config/db_connection.php';
 
+// Add these constants at the top of the file after session_start()
+define('MAX_REMARKS_LENGTH', 500);
+define('MAX_QUALITY_CHECK_LENGTH', 500);
+define('ALLOWED_TASKS', ['Mixing', 'Baking', 'Decorating']);
+
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
+}
+
+// Generate CSRF token if it doesn't exist
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
 $success_message = '';
@@ -39,43 +49,150 @@ try {
 
     // Handle form submission
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        $conn->beginTransaction();
-
-        // Get batch details
-        $recipe_id = $_POST['recipe_id'];
-        $schedule_id = $_POST['schedule_id'];
-        $start_time = $_POST['start_time'];
-        $end_time = $_POST['end_time'];
-        $remarks = $_POST['remarks'];
-        $assignments = $_POST['assignments'] ?? [];
-        $quality_check = $_POST['quality_check'];
-
-        // Insert batch
-        $stmt = $conn->prepare("INSERT INTO tbl_batches (recipe_id, schedule_id, batch_startTime, 
-                                                      batch_endTime, batch_remarks, quality_check) 
-                              VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$recipe_id, $schedule_id, $start_time, $end_time, $remarks, $quality_check]);
-        
-        $batch_id = $conn->lastInsertId();
-
-        // Insert task assignments
-        if (!empty($assignments)) {
-            $stmt = $conn->prepare("INSERT INTO tbl_batch_assignments 
-                                  (batch_id, user_id, ba_task, ba_status) 
-                                  VALUES (?, ?, ?, 'Pending')");
-            
-            foreach ($assignments as $assignment) {
-                $stmt->execute([
-                    $batch_id,
-                    $assignment['user_id'],
-                    $assignment['task']
-                ]);
+        try {
+            // Verify CSRF token
+            if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+                throw new Exception('Invalid CSRF token');
             }
+
+            $conn->beginTransaction();
+
+            // Validate recipe_id
+            $recipe_id = filter_input(INPUT_POST, 'recipe_id', FILTER_VALIDATE_INT);
+            if ($recipe_id === false || $recipe_id <= 0) {
+                throw new Exception("Invalid recipe ID");
+            }
+            
+            $stmt = $conn->prepare("SELECT recipe_id FROM tbl_recipe WHERE recipe_id = ?");
+            $stmt->execute([$recipe_id]);
+            if (!$stmt->fetch()) {
+                throw new Exception("Invalid recipe selected");
+            }
+
+            // Validate schedule_id
+            $schedule_id = filter_input(INPUT_POST, 'schedule_id', FILTER_VALIDATE_INT);
+            if ($schedule_id === false || $schedule_id <= 0) {
+                throw new Exception("Invalid schedule ID");
+            }
+            
+            // Verify schedule exists and has capacity
+            $stmt = $conn->prepare("SELECT s.schedule_id, s.schedule_batchNum, 
+                                   (SELECT COUNT(*) FROM tbl_batches WHERE schedule_id = s.schedule_id) as assigned_batches
+                                   FROM tbl_schedule s WHERE s.schedule_id = ?");
+            $stmt->execute([$schedule_id]);
+            $schedule = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$schedule) {
+                throw new Exception("Invalid schedule selected");
+            }
+            
+            // Check if schedule has reached its batch limit
+            if ($schedule['assigned_batches'] >= $schedule['schedule_batchNum']) {
+                throw new Exception("This schedule has reached its maximum number of batches");
+            }
+
+            // Validate datetime format and logic
+            $start_time = DateTime::createFromFormat('Y-m-d\TH:i', $_POST['start_time']);
+            $end_time = DateTime::createFromFormat('Y-m-d\TH:i', $_POST['end_time']);
+            
+            if (!$start_time || !$end_time) {
+                throw new Exception("Invalid date/time format");
+            }
+
+            // Ensure end time is after start time
+            if ($end_time <= $start_time) {
+                throw new Exception("End time must be after start time");
+            }
+
+            // Ensure times are not in the past
+            $now = new DateTime();
+            if ($start_time < $now) {
+                throw new Exception("Start time cannot be in the past");
+            }
+
+            // Convert to string format for database
+            $start_time = $start_time->format('Y-m-d H:i:s');
+            $end_time = $end_time->format('Y-m-d H:i:s');
+
+            // Validate and sanitize text inputs
+            $remarks = trim(filter_var($_POST['remarks'], FILTER_SANITIZE_STRING));
+            $quality_check = trim(filter_var($_POST['quality_check'], FILTER_SANITIZE_STRING));
+
+            // Check length limits
+            if (strlen($remarks) > MAX_REMARKS_LENGTH) {
+                throw new Exception("Remarks exceed maximum length of " . MAX_REMARKS_LENGTH . " characters");
+            }
+            if (strlen($quality_check) > MAX_QUALITY_CHECK_LENGTH) {
+                throw new Exception("Quality check comments exceed maximum length of " . MAX_QUALITY_CHECK_LENGTH . " characters");
+            }
+
+            // Validate assignments array
+            $assignments = isset($_POST['assignments']) ? $_POST['assignments'] : [];
+            if (empty($assignments)) {
+                throw new Exception("At least one task assignment is required");
+            }
+            if (count($assignments) > 10) { // Set a reasonable maximum number of assignments
+                throw new Exception("Too many task assignments");
+            }
+
+            $validated_assignments = [];
+            foreach ($assignments as $assignment) {
+                // Validate user_id
+                $user_id = filter_var($assignment['user_id'], FILTER_VALIDATE_INT);
+                if ($user_id === false || $user_id <= 0) {
+                    throw new Exception("Invalid baker ID");
+                }
+
+                $stmt = $conn->prepare("SELECT user_id FROM tbl_users WHERE user_id = ? AND user_role = 'Baker'");
+                $stmt->execute([$user_id]);
+                if (!$stmt->fetch()) {
+                    throw new Exception("Invalid baker selected");
+                }
+
+                // Validate task
+                $task = trim(filter_var($assignment['task'], FILTER_SANITIZE_STRING));
+                if (!in_array($task, ALLOWED_TASKS)) {
+                    throw new Exception("Invalid task selected");
+                }
+
+                $validated_assignments[] = [
+                    'user_id' => $user_id,
+                    'task' => $task
+                ];
+            }
+
+            // Insert batch
+            $stmt = $conn->prepare("INSERT INTO tbl_batches (recipe_id, schedule_id, batch_startTime, 
+                                                          batch_endTime, batch_remarks, quality_check) 
+                                  VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$recipe_id, $schedule_id, $start_time, $end_time, $remarks, $quality_check]);
+            
+            $batch_id = $conn->lastInsertId();
+
+            // Insert task assignments
+            if (!empty($validated_assignments)) {
+                $stmt = $conn->prepare("INSERT INTO tbl_batch_assignments 
+                                      (batch_id, user_id, ba_task, ba_status) 
+                                      VALUES (?, ?, ?, 'Pending')");
+                
+                foreach ($validated_assignments as $assignment) {
+                    $stmt->execute([
+                        $batch_id,
+                        $assignment['user_id'],
+                        $assignment['task']
+                    ]);
+                }
+            }
+
+            $conn->commit();
+            $success_message = "Batch created successfully!";
+
+        } catch(Exception $e) {
+            if (isset($conn)) {
+                $conn->rollBack();
+            }
+            $error_message = "Error: " . $e->getMessage();
         }
-
-        $conn->commit();
-        $success_message = "Batch created successfully!";
-
     }
 } catch(PDOException $e) {
     if (isset($conn)) {
@@ -106,13 +223,14 @@ try {
         </div>
 
         <?php if ($success_message): ?>
-            <div class="alert success"><?php echo $success_message; ?></div>
+            <div class="alert success"><?php echo htmlspecialchars($success_message); ?></div>
         <?php endif; ?>
         <?php if ($error_message): ?>
-            <div class="alert error"><?php echo $error_message; ?></div>
+            <div class="alert error"><?php echo htmlspecialchars($error_message); ?></div>
         <?php endif; ?>
 
         <form method="POST" class="batch-form">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
             <div class="form-section">
                 <h2>Batch Details</h2>
                 
@@ -121,7 +239,7 @@ try {
                     <select id="recipe_id" name="recipe_id" required>
                         <option value="">Select Recipe</option>
                         <?php foreach ($recipes as $recipe): ?>
-                            <option value="<?php echo $recipe['recipe_id']; ?>">
+                            <option value="<?php echo htmlspecialchars($recipe['recipe_id']); ?>">
                                 <?php echo htmlspecialchars($recipe['recipe_name']); ?>
                             </option>
                         <?php endforeach; ?>
@@ -136,12 +254,12 @@ try {
                             <?php 
                                 $remaining_batches = $schedule['schedule_batchNum'] - $schedule['assigned_batches'];
                             ?>
-                            <option value="<?php echo $schedule['schedule_id']; ?>" 
-                                    data-recipe="<?php echo $schedule['recipe_id']; ?>"
-                                    data-total="<?php echo $schedule['schedule_batchNum']; ?>"
-                                    data-assigned="<?php echo $schedule['assigned_batches']; ?>"
-                                    data-completed="<?php echo $schedule['completed_batches']; ?>"
-                                    data-remaining="<?php echo $remaining_batches; ?>">
+                            <option value="<?php echo htmlspecialchars($schedule['schedule_id']); ?>" 
+                                    data-recipe="<?php echo htmlspecialchars($schedule['recipe_id']); ?>"
+                                    data-total="<?php echo htmlspecialchars($schedule['schedule_batchNum']); ?>"
+                                    data-assigned="<?php echo htmlspecialchars($schedule['assigned_batches']); ?>"
+                                    data-completed="<?php echo htmlspecialchars($schedule['completed_batches']); ?>"
+                                    data-remaining="<?php echo htmlspecialchars($remaining_batches); ?>">
                                 <?php echo htmlspecialchars($schedule['recipe_name'] . ' - ' . 
                                       date('M d, Y', strtotime($schedule['schedule_date']))); ?>
                             </option>
@@ -197,7 +315,7 @@ try {
                             <select name="assignments[0][user_id]" required>
                                 <option value="">Select Baker</option>
                                 <?php foreach ($bakers as $baker): ?>
-                                    <option value="<?php echo $baker['user_id']; ?>">
+                                    <option value="<?php echo htmlspecialchars($baker['user_id']); ?>">
                                         <?php echo htmlspecialchars($baker['user_fullName']); ?>
                                     </option>
                                 <?php endforeach; ?>

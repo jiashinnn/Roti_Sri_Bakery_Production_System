@@ -8,13 +8,34 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+// Generate CSRF token if it doesn't exist
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $success_message = '';
 $error_message = '';
 
+// Add these constants at the top of the file after session_start()
+define('MAX_REMARKS_LENGTH', 500);
+define('MAX_QUALITY_CHECK_LENGTH', 500);
+define('ALLOWED_TASKS', ['Mixing', 'Baking', 'Decorating']);
+define('ALLOWED_STATUSES', ['Pending', 'In Progress', 'Completed']);
+
 try {
     // Get batch ID from URL
-    $batch_id = $_GET['id'] ?? null;
+    $batch_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
     if (!$batch_id) {
+        header("Location: view_batches.php");
+        exit();
+    }
+
+    // Verify batch exists and user has permission to edit it
+    $stmt = $conn->prepare("SELECT * FROM tbl_batches WHERE batch_id = ?");
+    $stmt->execute([$batch_id]);
+    $batch = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$batch) {
         header("Location: view_batches.php");
         exit();
     }
@@ -53,62 +74,165 @@ try {
 
     // Handle form submission
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        $conn->beginTransaction();
-
-        // Get batch details
-        $recipe_id = $_POST['recipe_id'];
-        $schedule_id = $_POST['schedule_id'];
-        $start_time = $_POST['start_time'];
-        $end_time = $_POST['end_time'];
-        $status = $_POST['status'];
-        $remarks = $_POST['remarks'];
-        $assignments = $_POST['assignments'] ?? [];
-        $quality_check = $_POST['quality_check'];
-
-        // Update batch
-        $stmt = $conn->prepare("UPDATE tbl_batches SET 
-                                recipe_id = ?,
-                                schedule_id = ?,
-                                batch_startTime = ?,
-                                batch_endTime = ?,
-                                batch_status = ?,
-                                batch_remarks = ?,
-                                quality_check = ?
-                              WHERE batch_id = ?");
-        $stmt->execute([$recipe_id, $schedule_id, $start_time, $end_time, $status, $remarks, $quality_check, $batch_id]);
-
-        // Delete existing assignments
-        $stmt = $conn->prepare("DELETE FROM tbl_batch_assignments WHERE batch_id = ?");
-        $stmt->execute([$batch_id]);
-
-        // Insert new assignments
-        if (!empty($assignments)) {
-            $stmt = $conn->prepare("INSERT INTO tbl_batch_assignments 
-                                  (batch_id, user_id, ba_task, ba_status) 
-                                  VALUES (?, ?, ?, 'Pending')");
-            
-            foreach ($assignments as $assignment) {
-                $stmt->execute([
-                    $batch_id,
-                    $assignment['user_id'],
-                    $assignment['task']
-                ]);
+        try {
+            // Verify CSRF token
+            if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+                throw new Exception('Invalid CSRF token');
             }
+
+            $conn->beginTransaction();
+
+            // Validate batch_id
+            $batch_id = filter_input(INPUT_POST, 'batch_id', FILTER_VALIDATE_INT);
+            if ($batch_id === false || $batch_id <= 0) {
+                throw new Exception("Invalid batch ID");
+            }
+
+            // Validate recipe_id
+            $recipe_id = filter_input(INPUT_POST, 'recipe_id', FILTER_VALIDATE_INT);
+            if ($recipe_id === false || $recipe_id <= 0) {
+                throw new Exception("Invalid recipe ID");
+            }
+            
+            $stmt = $conn->prepare("SELECT recipe_id FROM tbl_recipe WHERE recipe_id = ?");
+            $stmt->execute([$recipe_id]);
+            if (!$stmt->fetch()) {
+                throw new Exception("Invalid recipe selected");
+            }
+
+            // Validate schedule_id
+            $schedule_id = filter_input(INPUT_POST, 'schedule_id', FILTER_VALIDATE_INT);
+            if ($schedule_id === false || $schedule_id <= 0) {
+                throw new Exception("Invalid schedule ID");
+            }
+            
+            // Verify schedule exists
+            $stmt = $conn->prepare("SELECT schedule_id FROM tbl_schedule WHERE schedule_id = ?");
+            $stmt->execute([$schedule_id]);
+            if (!$stmt->fetch()) {
+                throw new Exception("Invalid schedule selected");
+            }
+
+            // Validate datetime format and logic
+            $start_time = DateTime::createFromFormat('Y-m-d\TH:i', $_POST['start_time']);
+            $end_time = DateTime::createFromFormat('Y-m-d\TH:i', $_POST['end_time']);
+            
+            if (!$start_time || !$end_time) {
+                throw new Exception("Invalid date/time format");
+            }
+
+            // Ensure end time is after start time
+            if ($end_time <= $start_time) {
+                throw new Exception("End time must be after start time");
+            }
+
+            // Convert to string format for database
+            $start_time = $start_time->format('Y-m-d H:i:s');
+            $end_time = $end_time->format('Y-m-d H:i:s');
+
+            // Validate status
+            $status = trim(filter_var($_POST['status'], FILTER_SANITIZE_STRING));
+            if (!in_array($status, ALLOWED_STATUSES)) {
+                throw new Exception("Invalid status selected");
+            }
+
+            // Validate and sanitize text inputs
+            $remarks = trim(filter_var($_POST['remarks'], FILTER_SANITIZE_STRING));
+            $quality_check = trim(filter_var($_POST['quality_check'], FILTER_SANITIZE_STRING));
+
+            // Check length limits
+            if (strlen($remarks) > MAX_REMARKS_LENGTH) {
+                throw new Exception("Remarks exceed maximum length of " . MAX_REMARKS_LENGTH . " characters");
+            }
+            if (strlen($quality_check) > MAX_QUALITY_CHECK_LENGTH) {
+                throw new Exception("Quality check comments exceed maximum length of " . MAX_QUALITY_CHECK_LENGTH . " characters");
+            }
+
+            // Validate assignments array
+            $assignments = isset($_POST['assignments']) ? $_POST['assignments'] : [];
+            if (empty($assignments)) {
+                throw new Exception("At least one task assignment is required");
+            }
+            if (count($assignments) > 10) { // Set a reasonable maximum number of assignments
+                throw new Exception("Too many task assignments");
+            }
+
+            $validated_assignments = [];
+            foreach ($assignments as $assignment) {
+                // Validate user_id
+                $user_id = filter_var($assignment['user_id'], FILTER_VALIDATE_INT);
+                if ($user_id === false || $user_id <= 0) {
+                    throw new Exception("Invalid baker ID");
+                }
+
+                $stmt = $conn->prepare("SELECT user_id FROM tbl_users WHERE user_id = ? AND user_role = 'Baker'");
+                $stmt->execute([$user_id]);
+                if (!$stmt->fetch()) {
+                    throw new Exception("Invalid baker selected");
+                }
+
+                // Validate task
+                $task = trim(filter_var($assignment['task'], FILTER_SANITIZE_STRING));
+                if (!in_array($task, ALLOWED_TASKS)) {
+                    throw new Exception("Invalid task selected");
+                }
+
+                $validated_assignments[] = [
+                    'user_id' => $user_id,
+                    'task' => $task
+                ];
+            }
+
+            // Update batch
+            $stmt = $conn->prepare("UPDATE tbl_batches SET 
+                                    recipe_id = ?,
+                                    schedule_id = ?,
+                                    batch_startTime = ?,
+                                    batch_endTime = ?,
+                                    batch_status = ?,
+                                    batch_remarks = ?,
+                                    quality_check = ?
+                                  WHERE batch_id = ?");
+            $stmt->execute([$recipe_id, $schedule_id, $start_time, $end_time, $status, $remarks, $quality_check, $batch_id]);
+
+            // Delete existing assignments
+            $stmt = $conn->prepare("DELETE FROM tbl_batch_assignments WHERE batch_id = ?");
+            $stmt->execute([$batch_id]);
+
+            // Insert new assignments
+            if (!empty($validated_assignments)) {
+                $stmt = $conn->prepare("INSERT INTO tbl_batch_assignments 
+                                      (batch_id, user_id, ba_task, ba_status) 
+                                      VALUES (?, ?, ?, 'Pending')");
+                
+                foreach ($validated_assignments as $assignment) {
+                    $stmt->execute([
+                        $batch_id,
+                        $assignment['user_id'],
+                        $assignment['task']
+                    ]);
+                }
+            }
+
+            $conn->commit();
+            $success_message = "Batch updated successfully!";
+
+            // Refresh batch data
+            $stmt = $conn->prepare("SELECT * FROM tbl_batches WHERE batch_id = ?");
+            $stmt->execute([$batch_id]);
+            $batch = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // Refresh assignments
+            $stmt = $conn->prepare("SELECT * FROM tbl_batch_assignments WHERE batch_id = ?");
+            $stmt->execute([$batch_id]);
+            $existing_assignments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        } catch(Exception $e) {
+            if (isset($conn)) {
+                $conn->rollBack();
+            }
+            $error_message = "Error: " . $e->getMessage();
         }
-
-        $conn->commit();
-        $success_message = "Batch updated successfully!";
-
-        // Refresh batch data
-        $stmt = $conn->prepare("SELECT * FROM tbl_batches WHERE batch_id = ?");
-        $stmt->execute([$batch_id]);
-        $batch = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        // Refresh assignments
-        $stmt = $conn->prepare("SELECT * FROM tbl_batch_assignments WHERE batch_id = ?");
-        $stmt->execute([$batch_id]);
-        $existing_assignments = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
     }
 } catch(PDOException $e) {
     if (isset($conn)) {
@@ -146,6 +270,9 @@ try {
         <?php endif; ?>
 
         <form method="POST" class="batch-form">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
+            <input type="hidden" name="batch_id" value="<?php echo htmlspecialchars($batch_id); ?>">
+            
             <div class="form-section">
                 <h2>Batch Details</h2>
                 
