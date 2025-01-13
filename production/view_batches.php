@@ -228,7 +228,7 @@ function getSortIndicator($column) {
                                     <td class="actions">
                                         <a href="edit_batch.php?id=<?php echo $batch['batch_id']; ?>" 
                                            class="action-btn edit-btn <?php echo ($batch['batch_status'] === 'Completed') ? 'disabled' : ''; ?>" 
-                                           title="Edit"
+                                           title="<?php echo ($batch['batch_status'] === 'Completed') ? 'Cannot edit completed batch' : 'Edit'; ?>"
                                            <?php echo ($batch['batch_status'] === 'Completed') ? 'onclick="return false;"' : ''; ?>>
                                             <i class="fas fa-edit"></i> 
                                         </a>
