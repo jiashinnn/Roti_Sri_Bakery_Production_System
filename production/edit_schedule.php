@@ -19,6 +19,35 @@ if (!isset($_GET['id'])) {
 
 $schedule_id = $_GET['id'];
 
+// Handle AJAX requests for user availability
+if (isset($_GET['date'])) {
+    $selected_date = $_GET['date'];
+    $current_schedule_id = $_GET['schedule_id'] ?? 0;
+
+    $stmt = $conn->prepare("
+        SELECT u.user_id, u.user_fullName, u.user_role,
+               CASE 
+                   WHEN EXISTS (
+                       SELECT 1 
+                       FROM tbl_schedule_assignments sa 
+                       WHERE sa.user_id = u.user_id 
+                       AND sa.sa_dateAssigned = ?
+                       AND sa.schedule_id != ?
+                   ) THEN 'Unavailable'
+                   ELSE 'Available'
+               END AS availability_status
+        FROM tbl_users u
+        WHERE u.user_role IN ('Baker', 'Supervisor')
+        ORDER BY u.user_role, u.user_fullName
+    ");
+    $stmt->execute([$selected_date, $current_schedule_id]);
+    $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    header('Content-Type: application/json');
+    echo json_encode($users);
+    exit();
+}
+
 try {
     // Get schedule details
     $stmt = $conn->prepare("SELECT * FROM tbl_schedule WHERE schedule_id = ?");
@@ -198,6 +227,33 @@ try {
     .calculate-btn i {
         font-size: 0.9em;
     }
+
+    .availability-status {
+        margin-left: 8px;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 0.85em;
+    }
+
+    .availability-status.available {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .availability-status.unavailable {
+        background-color: #ffebee;
+        color: #c62828;
+    }
+
+    .user-checkbox {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .user-checkbox input[type="checkbox"] {
+        margin-right: 8px;
+    }
     </style>
 </head>
 <body>
@@ -304,6 +360,7 @@ try {
                                    value="<?php echo $user['user_id']; ?>"
                                    <?php echo in_array($user['user_id'], $assigned_users) ? 'checked' : ''; ?>>
                             <?php echo htmlspecialchars($user['user_fullName']); ?>
+                            <span class="availability-status"></span>
                         </label>
                     <?php endforeach; ?>
                     </div>
@@ -399,6 +456,40 @@ try {
     // Calculate on page load if values exist
     if (document.getElementById('schedule_orderVolumn').value) {
         calculateBatchAndQuantity();
+    }
+
+    function checkAvailability() {
+        const dateInput = document.getElementById('schedule_date');
+        const selectedDate = dateInput.value;
+        const scheduleId = <?php echo $schedule_id; ?>;
+
+        if (!selectedDate) return;
+
+        // Check user availability
+        fetch(`edit_schedule.php?date=${selectedDate}&schedule_id=${scheduleId}`)
+            .then(response => response.json())
+            .then(users => {
+                const userCheckboxes = document.querySelectorAll('.user-checkbox');
+                userCheckboxes.forEach(checkbox => {
+                    const userId = checkbox.querySelector('input').value;
+                    const user = users.find(u => u.user_id === userId);
+                    const statusSpan = checkbox.querySelector('.availability-status');
+                    
+                    if (user) {
+                        statusSpan.textContent = `(${user.availability_status})`;
+                        statusSpan.className = `availability-status ${user.availability_status.toLowerCase()}`;
+                    }
+                });
+            })
+            .catch(error => console.error('Error checking availability:', error));
+    }
+
+    // Add event listener for date changes
+    document.getElementById('schedule_date').addEventListener('change', checkAvailability);
+
+    // Check availability on page load if date is already selected
+    if (document.getElementById('schedule_date').value) {
+        checkAvailability();
     }
     </script>
 </body>
