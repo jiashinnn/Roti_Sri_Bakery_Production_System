@@ -333,22 +333,20 @@ try {
 
             <div class="form-section">
                 <h2>Assign Users</h2>
-                <div class="user-assignments">
-                    <div class="user-selection">
-                        <?php foreach ($users as $user): ?>
-                            <div class="user-checkbox">
-                                <input type="checkbox"
-                                    name="assigned_users[]"
-                                    value="<?php echo $user['user_id']; ?>"
-                                    <?php echo in_array($user['user_id'], $assigned_users) ? 'checked' : ''; ?>>
-                                <span><?php echo htmlspecialchars($user['user_fullName']); ?>
-                                    (<?php echo $user['user_role']; ?>)</span>
-                                <span class="status">
-                                    <?php echo in_array($user['user_id'], $assigned_users) ? 'Unavailable' : 'Available'; ?>>
-                                </span>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
+                <div class="user-selection">
+                    <?php foreach ($users as $user): ?>
+                        <div class="user-checkbox">
+                            <input type="checkbox"
+                                name="assigned_users[]"
+                                value="<?php echo $user['user_id']; ?>"
+                                <?php echo in_array($user['user_id'], $assigned_users) ? 'checked' : ''; ?>>
+                            <span><?php echo htmlspecialchars($user['user_fullName']); ?> 
+                                (<?php echo $user['user_role']; ?>)</span>
+                            <span class="status <?php echo in_array($user['user_id'], $assigned_users) ? 'unavailable' : 'available'; ?>">
+                                <?php echo in_array($user['user_id'], $assigned_users) ? 'Unavailable' : 'Available'; ?>
+                            </span>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
 
@@ -362,7 +360,7 @@ try {
                                 value="<?php echo $item['equipment_id']; ?>"
                                 <?php echo in_array($item['equipment_id'], $assigned_equipment) ? 'checked' : ''; ?>>
                             <span><?php echo htmlspecialchars($item['equipment_name']); ?></span>
-                            <span class="status">
+                            <span class="status <?php echo in_array($item['equipment_id'], $assigned_equipment) ? 'in-use' : 'available'; ?>">
                                 <?php echo in_array($item['equipment_id'], $assigned_equipment) ? 'In Use' : 'Available'; ?>
                             </span>
                         </div>
@@ -455,7 +453,7 @@ try {
                         const userId = checkbox.querySelector('input').value;
                         const user = data.users.find(u => u.user_id === userId);
                         const statusSpan = checkbox.querySelector('.status');
-
+                        
                         if (user) {
                             let statusText = user.availability_status;
                             if (user.assignment_count > 0) {
@@ -463,10 +461,10 @@ try {
                             }
                             statusSpan.textContent = statusText;
                             statusSpan.className = `status ${user.availability_status.toLowerCase()}`;
-
+                            
                             // Disable checkbox if user is unavailable
                             const checkbox_input = checkbox.querySelector('input[type="checkbox"]');
-                            if (!checkbox_input.checked) { // Only disable if not already assigned
+                            if (!checkbox_input.checked) {
                                 checkbox_input.disabled = user.availability_status === 'Unavailable';
                             }
                         }
@@ -478,16 +476,16 @@ try {
                         const equipmentId = checkbox.querySelector('input').value;
                         const equipment = data.equipment.find(e => e.equipment_id === equipmentId);
                         const statusSpan = checkbox.querySelector('.status');
-
+                        
                         if (equipment) {
                             statusSpan.textContent = equipment.availability_status;
                             statusSpan.className = `status ${equipment.availability_status.toLowerCase().replace(' ', '-')}`;
-
+                            
                             // Disable checkbox if equipment is unavailable or in use
                             const checkbox_input = checkbox.querySelector('input[type="checkbox"]');
-                            if (!checkbox_input.checked) { // Only disable if not already assigned
-                                checkbox_input.disabled = equipment.availability_status === 'Out of Order' ||
-                                    equipment.availability_status === 'In Use';
+                            if (!checkbox_input.checked) {
+                                checkbox_input.disabled = equipment.availability_status === 'Out of Order' || 
+                                                        equipment.availability_status === 'In Use';
                             }
                         }
                     });
