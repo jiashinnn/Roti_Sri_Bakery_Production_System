@@ -19,7 +19,7 @@ try {
                             user_address,
                             user_dateRegister
                          FROM tbl_users 
-                         WHERE user_role = 'Baker'
+                         WHERE user_role IN ('Baker', 'Supervisor')
                          ORDER BY user_fullName");
     $bakers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -54,8 +54,8 @@ try {
                     <input type="text" id="searchInput" placeholder="Search bakers...">
                     <i class="fas fa-search"></i>
                 </div>
-                <button class="add-baker-btn">
-                    <i class="fas fa-plus"></i> Add New Baker
+                <button class="add-baker-btn" onclick="window.location.href='add_baker.php'">
+                    <i class="fas fa-plus"></i> Add New Baker/Supervisor
                 </button>
             </div>
 
@@ -70,7 +70,10 @@ try {
                             <div class="baker-info">
                                 <div class="baker-header">
                                     <i class="fas fa-user user-icon"></i>
-                                    <div class="role-badge baker">Baker</div>
+                                    <!-- Dynamic role badge -->
+                                    <div class="role-badge <?php echo strtolower(htmlspecialchars($baker['user_role'])); ?>">
+                                        <?php echo htmlspecialchars($baker['user_role']); ?>
+                                    </div>
                                 </div>
                                 <h3><?php echo htmlspecialchars($baker['user_fullName']); ?></h3>
                                 <div class="contact-info">
