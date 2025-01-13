@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 12, 2025 at 12:39 PM
+-- Generation Time: Jan 13, 2025 at 04:34 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -38,13 +38,6 @@ CREATE TABLE `tbl_batches` (
   `quality_check` varchar(255) NOT NULL DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `tbl_batches`
---
-
-INSERT INTO `tbl_batches` (`batch_id`, `recipe_id`, `schedule_id`, `batch_startTime`, `batch_endTime`, `batch_status`, `batch_remarks`, `quality_check`) VALUES
-(3, 9, 3, '2024-12-29 01:45:00', '2024-12-29 23:45:00', 'Pending', 'Abby is responsible to overview', 'Product not enough. Production could not meet the 1000 order requirement due to a shortage of raw materials, resulting in only 500 units being produced.');
-
 -- --------------------------------------------------------
 
 --
@@ -58,14 +51,6 @@ CREATE TABLE `tbl_batch_assignments` (
   `ba_task` varchar(255) NOT NULL,
   `ba_status` enum('Pending','In Progress','Completed','') NOT NULL DEFAULT 'Pending'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `tbl_batch_assignments`
---
-
-INSERT INTO `tbl_batch_assignments` (`ba_id`, `batch_id`, `user_id`, `ba_task`, `ba_status`) VALUES
-(5, 3, 15, 'Mixing', 'Pending'),
-(6, 3, 16, 'Decorating', 'Pending');
 
 -- --------------------------------------------------------
 
@@ -86,7 +71,7 @@ CREATE TABLE `tbl_equipments` (
 --
 
 INSERT INTO `tbl_equipments` (`equipment_id`, `equipment_name`, `equipment_description`, `equipment_status`, `equipment_dateAdded`) VALUES
-(1, 'Mixer A', 'Industrial dough mixer - 50L capacity', '', '2025-01-10 13:37:17'),
+(1, 'Mixer A', 'Industrial dough mixer - 50L capacity', 'Available', '2025-01-10 13:37:17'),
 (2, 'Mixer B', 'Industrial dough mixer - 100L capacity', 'Available', '2025-01-10 13:37:17'),
 (3, 'Oven 1', 'Deck oven - 3 decks', 'Available', '2025-01-10 13:38:05'),
 (4, 'Oven 2', 'Convection oven', 'Available', '2025-01-10 13:38:05'),
@@ -223,15 +208,17 @@ CREATE TABLE `tbl_schedule` (
   `schedule_date` date NOT NULL,
   `schedule_quantityToProduce` int(6) NOT NULL,
   `schedule_orderVolumn` int(6) NOT NULL,
-  `schedule_status` enum('Pending','In Progress','Completed','') NOT NULL DEFAULT 'Pending'
+  `schedule_status` enum('Pending','In Progress','Completed','') NOT NULL DEFAULT 'Pending',
+  `schedule_batchNum` int(3) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `tbl_schedule`
 --
 
-INSERT INTO `tbl_schedule` (`schedule_id`, `recipe_id`, `schedule_date`, `schedule_quantityToProduce`, `schedule_orderVolumn`, `schedule_status`) VALUES
-(3, 9, '2024-12-28', 2, 1, 'Pending');
+INSERT INTO `tbl_schedule` (`schedule_id`, `recipe_id`, `schedule_date`, `schedule_quantityToProduce`, `schedule_orderVolumn`, `schedule_status`, `schedule_batchNum`) VALUES
+(6, 1, '2025-01-14', 32, 30, 'Pending', 8),
+(7, 2, '2025-01-15', 36, 30, 'Pending', 3);
 
 -- --------------------------------------------------------
 
@@ -251,8 +238,9 @@ CREATE TABLE `tbl_schedule_assignments` (
 --
 
 INSERT INTO `tbl_schedule_assignments` (`sa_id`, `schedule_id`, `user_id`, `sa_dateAssigned`) VALUES
-(9, 3, 15, '2025-01-10 05:44:13'),
-(10, 3, 14, '2025-01-10 05:44:13');
+(17, 6, 17, '2025-01-12 16:34:48'),
+(18, 6, 14, '2025-01-12 16:34:48'),
+(19, 7, 16, '2025-01-12 17:25:46');
 
 -- --------------------------------------------------------
 
@@ -272,7 +260,9 @@ CREATE TABLE `tbl_schedule_equipment` (
 --
 
 INSERT INTO `tbl_schedule_equipment` (`se_id`, `schedule_id`, `equipment_id`, `se_dateAssigned`) VALUES
-(1, 3, 1, '2025-01-12 19:34:52.610252');
+(12, 6, 1, '2025-01-13 00:34:48.739507'),
+(13, 6, 3, '2025-01-13 00:34:48.739622'),
+(14, 7, 5, '2025-01-13 01:25:46.421889');
 
 -- --------------------------------------------------------
 
@@ -288,20 +278,23 @@ CREATE TABLE `tbl_users` (
   `user_email` varchar(200) NOT NULL,
   `user_password` varchar(200) NOT NULL,
   `user_dateRegister` datetime NOT NULL DEFAULT current_timestamp(),
-  `user_role` varchar(10) NOT NULL DEFAULT 'Baker'
+  `user_role` varchar(10) NOT NULL DEFAULT 'Baker',
+  `reset_token` varchar(255) DEFAULT NULL,
+  `token_expiry` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `tbl_users`
 --
 
-INSERT INTO `tbl_users` (`user_id`, `user_fullName`, `user_contact`, `user_address`, `user_email`, `user_password`, `user_dateRegister`, `user_role`) VALUES
-(13, 'Admin', '0123456789', 'Roti Sri Bakery', 'Admin@gmail.com', '$2y$10$ydcLcf5duwhxgjXK.k/mBu0ikQTz14zXVDzmcx25BOhUsNifs5QB.', '2024-12-29 16:36:59', 'Admin'),
-(14, 'Alicia', '0123456789', 'Kedah', 'alicia@gmail.com', '$2y$10$AIa/Or4OCSbPpO6Ii2/FTOuElG6gNMrMurzMcaBBxHl0nZGz6pA.2', '2024-12-29 16:38:47', 'Supervisor'),
-(15, 'Abby', '0123456789', 'Kedah', 'abby@gmail.com', '$2y$10$wHP8eBIK2iFIPznx4cop5ue5wlEBw4HYxU0is3ogQw5DeSLrvA8Re', '2024-12-29 16:39:21', 'Baker'),
-(16, 'Aurora', '0123456789', 'Kedah', 'aurora@gmail.com', '$2y$10$EfeC4D4e6C2XFTUMbJjxXO.MJ2OvHtSwpYGztV.Hh5WxSxwcXdbA.', '2024-12-29 16:40:12', 'Baker'),
-(17, 'Irdina', '0123456789', 'Kedah', 'irdina@gmail.com', '$2y$10$NpmQZqhTTp4YOGvN4DGNkeoKdZ2oiB6UJGrI4f/cCStUpNt2CWbVK', '2024-12-29 16:41:00', 'Baker'),
-(18, 'Alia', '0123456789', 'Kedah', 'alia@gmail.com', '$2y$10$px1H5SauACBIugoCce/aPehQol8A7tS9w6qza4W/LB7OUQv4apSBO', '2024-12-29 16:42:41', 'Baker');
+INSERT INTO `tbl_users` (`user_id`, `user_fullName`, `user_contact`, `user_address`, `user_email`, `user_password`, `user_dateRegister`, `user_role`, `reset_token`, `token_expiry`) VALUES
+(13, 'Admin', '0123456789', 'Roti Sri Bakery', 'Admin@gmail.com', '$2y$10$ydcLcf5duwhxgjXK.k/mBu0ikQTz14zXVDzmcx25BOhUsNifs5QB.', '2024-12-29 16:36:59', 'Admin', NULL, NULL),
+(14, 'Alicia', '0123456789', 'Kedah', 'alicia@gmail.com', '$2y$10$AIa/Or4OCSbPpO6Ii2/FTOuElG6gNMrMurzMcaBBxHl0nZGz6pA.2', '2024-12-29 16:38:47', 'Supervisor', NULL, NULL),
+(15, 'Abby', '0123456789', 'Kedah', 'abby@gmail.com', '$2y$10$wHP8eBIK2iFIPznx4cop5ue5wlEBw4HYxU0is3ogQw5DeSLrvA8Re', '2024-12-29 16:39:21', 'Baker', NULL, NULL),
+(16, 'Aurora', '0123456789', 'Kedah', 'aurora@gmail.com', '$2y$10$EfeC4D4e6C2XFTUMbJjxXO.MJ2OvHtSwpYGztV.Hh5WxSxwcXdbA.', '2024-12-29 16:40:12', 'Baker', NULL, NULL),
+(17, 'Irdina', '0123456789', 'Kedah', 'irdina@gmail.com', '$2y$10$NpmQZqhTTp4YOGvN4DGNkeoKdZ2oiB6UJGrI4f/cCStUpNt2CWbVK', '2024-12-29 16:41:00', 'Baker', NULL, NULL),
+(18, 'Alia', '0123456789', 'Kedah', 'alia@gmail.com', '$2y$10$px1H5SauACBIugoCce/aPehQol8A7tS9w6qza4W/LB7OUQv4apSBO', '2024-12-29 16:42:41', 'Baker', NULL, NULL),
+(19, 'Yungjie', '0123456789', '1234567890', 'yungjielee@gmail.com', '$2y$10$7kI7/iEFumEnHNWqVdYoHeBlNZjwML.kDhDQ2aAY6mqeb2E3oGvka', '2025-01-13 04:25:43', 'Baker', NULL, NULL);
 
 --
 -- Indexes for dumped tables
@@ -409,25 +402,25 @@ ALTER TABLE `tbl_recipe`
 -- AUTO_INCREMENT for table `tbl_schedule`
 --
 ALTER TABLE `tbl_schedule`
-  MODIFY `schedule_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `schedule_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `tbl_schedule_assignments`
 --
 ALTER TABLE `tbl_schedule_assignments`
-  MODIFY `sa_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `sa_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `tbl_schedule_equipment`
 --
 ALTER TABLE `tbl_schedule_equipment`
-  MODIFY `se_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `se_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `tbl_users`
 --
 ALTER TABLE `tbl_users`
-  MODIFY `user_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `user_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- Constraints for dumped tables
