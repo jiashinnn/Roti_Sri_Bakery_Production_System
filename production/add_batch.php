@@ -30,7 +30,7 @@ try {
                          ORDER BY r.recipe_name");
     $recipes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Get schedules
+    // Get schedules with batch statistics
     $stmt = $conn->query("SELECT s.schedule_id, r.recipe_id, r.recipe_name, s.schedule_date,
                          s.schedule_batchNum,
                          (SELECT COUNT(*) FROM tbl_batches WHERE schedule_id = s.schedule_id) as assigned_batches,
@@ -114,9 +114,9 @@ try {
             $start_time = $start_time->format('Y-m-d H:i:s');
             $end_time = $end_time->format('Y-m-d H:i:s');
 
-            // Validate and sanitize text inputs
-            $remarks = trim(filter_var($_POST['remarks'], FILTER_SANITIZE_STRING));
-            $quality_check = trim(filter_var($_POST['quality_check'], FILTER_SANITIZE_STRING));
+            // Sanitize text inputs
+            $remarks = htmlspecialchars(trim($_POST['remarks'] ?? ''));
+            $quality_check = htmlspecialchars(trim($_POST['quality_check'] ?? ''));
 
             // Check length limits
             if (strlen($remarks) > MAX_REMARKS_LENGTH) {
@@ -150,7 +150,7 @@ try {
                 }
 
                 // Validate task
-                $task = trim(filter_var($assignment['task'], FILTER_SANITIZE_STRING));
+                $task = htmlspecialchars(trim($assignment['task'] ?? ''));
                 if (!in_array($task, ALLOWED_TASKS)) {
                     throw new Exception("Invalid task selected");
                 }
@@ -161,6 +161,7 @@ try {
                 ];
             }
 
+            // Prepared Statement
             // Insert batch
             $stmt = $conn->prepare("INSERT INTO tbl_batches (recipe_id, schedule_id, batch_startTime, 
                                                           batch_endTime, batch_remarks, quality_check) 

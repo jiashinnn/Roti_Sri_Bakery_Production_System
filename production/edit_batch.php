@@ -131,14 +131,14 @@ try {
             $end_time = $end_time->format('Y-m-d H:i:s');
 
             // Validate status
-            $status = trim(filter_var($_POST['status'], FILTER_SANITIZE_STRING));
+            $status = htmlspecialchars(trim($_POST['status'] ?? ''));
             if (!in_array($status, ALLOWED_STATUSES)) {
                 throw new Exception("Invalid status selected");
             }
 
             // Validate and sanitize text inputs
-            $remarks = trim(filter_var($_POST['remarks'], FILTER_SANITIZE_STRING));
-            $quality_check = trim(filter_var($_POST['quality_check'], FILTER_SANITIZE_STRING));
+            $remarks = htmlspecialchars(trim($_POST['remarks'] ?? ''));
+            $quality_check = htmlspecialchars(trim($_POST['quality_check'] ?? ''));
 
             // Check length limits
             if (strlen($remarks) > MAX_REMARKS_LENGTH) {
@@ -172,7 +172,7 @@ try {
                 }
 
                 // Validate task
-                $task = trim(filter_var($assignment['task'], FILTER_SANITIZE_STRING));
+                $task = htmlspecialchars(trim($assignment['task'] ?? ''));
                 if (!in_array($task, ALLOWED_TASKS)) {
                     throw new Exception("Invalid task selected");
                 }
