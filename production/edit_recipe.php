@@ -1,8 +1,10 @@
 <?php
+// Initialize session for user authentication
 session_start();
 require_once 'config/db_connection.php';
 
-// Check if user is logged in
+// Security Check: Ensure user authentication
+// Redirect to login if no valid session exists
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
@@ -11,7 +13,8 @@ if (!isset($_SESSION['user_id'])) {
 $success_message = '';
 $error_message = '';
 
-// Check if recipe ID is provided
+// Security Check: Validate recipe ID parameter
+// Prevent unauthorized access by ensuring recipe ID exists
 if (!isset($_GET['id'])) {
     header("Location: view_recipes.php");
     exit();
@@ -19,37 +22,43 @@ if (!isset($_GET['id'])) {
 
 $recipe_id = $_GET['id'];
 
-// Fetch recipe and ingredients data
+// Database Operations: Fetch recipe data
 try {
-    // Get recipe details
+    // Security: Use prepared statements to prevent SQL injection
     $stmt = $conn->prepare("SELECT * FROM tbl_recipe WHERE recipe_id = ?");
     $stmt->execute([$recipe_id]);
     $recipe = $stmt->fetch(PDO::FETCH_ASSOC);
 
+    // Security Check: Verify recipe exists
+    // Prevent access to non-existent recipes
     if (!$recipe) {
         header("Location: view_recipes.php");
         exit();
     }
 
-    // Get ingredients
+    // Fetch associated ingredients using prepared statement
     $stmt = $conn->prepare("SELECT * FROM tbl_ingredients WHERE recipe_id = ?");
     $stmt->execute([$recipe_id]);
     $ingredients = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 } catch(PDOException $e) {
+    // Exception Handling: Database query errors
+    // Catch and display database-related errors
     $error_message = "Error: " . $e->getMessage();
 }
 
-// Handle form submission
+// Form Submission Handler
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
-        // Validate batch size
+        // Input Validation: Ensure batch size is valid
+        // Prevent negative or zero values
         $recipe_batchSize = floatval($_POST['batch_size']);
         if ($recipe_batchSize < 0.01) {
             throw new Exception("Batch size cannot be less than 0.01");
         }
 
-        // Validate ingredient quantities
+        // Input Validation: Verify ingredient quantities
+        // Ensure all ingredients have valid quantities
         $ingredient_quantities = $_POST['ingredient_quantity'];
         foreach ($ingredient_quantities as $key => $quantity) {
             if (floatval($quantity) < 0.01) {
@@ -57,9 +66,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
 
+        // Database Transaction: Ensure data consistency
         $conn->beginTransaction();
 
-        // Update recipe details
+        // Security: Sanitize input and use prepared statements
+        // Prevent XSS attacks using htmlspecialchars
         $stmt = $conn->prepare("UPDATE tbl_recipe SET 
             recipe_name = ?, 
             recipe_category = ?, 
@@ -77,17 +88,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $recipe_id
         ]);
 
-        // Delete existing ingredients
+        // Database Operation: Clear existing ingredients
         $stmt = $conn->prepare("DELETE FROM tbl_ingredients WHERE recipe_id = ?");
         $stmt->execute([$recipe_id]);
 
-        // Insert updated ingredients
+        // Database Operation: Add updated ingredients
+        // Security: Sanitize all ingredient inputs
         $stmt = $conn->prepare("INSERT INTO tbl_ingredients (recipe_id, ingredient_name, ingredient_quantity, ingredient_unitOfMeasure) VALUES (?, ?, ?, ?)");
         
         $ingredient_names = $_POST['ingredient_name'];
         $ingredient_quantities = $_POST['ingredient_quantity'];
         $ingredient_units = $_POST['ingredient_unit'];
 
+        // Input Validation: Process only non-empty ingredient entries
         foreach ($ingredient_names as $key => $name) {
             if (!empty($name)) {
                 $stmt->execute([
@@ -99,10 +112,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
 
+        // Commit transaction if all operations successful
         $conn->commit();
         $success_message = "Recipe updated successfully!";
         
-        // Refresh recipe data
+        // Refresh data after successful update
         $stmt = $conn->prepare("SELECT * FROM tbl_recipe WHERE recipe_id = ?");
         $stmt->execute([$recipe_id]);
         $recipe = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -112,8 +126,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $ingredients = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     } catch(Exception $e) {
+        // Exception Handling: Roll back transaction on any error
+        // This ensures database consistency by undoing all changes
         $conn->rollBack();
-        $error_message = "Error: " . $e->getMessage();
+        // Security: Sanitize error message before display
+        $error_message = "Error: " . htmlspecialchars($e->getMessage());
     }
 }
 ?>

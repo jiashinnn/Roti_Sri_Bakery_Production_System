@@ -1,29 +1,46 @@
 <?php
+// Initialize user session for authentication tracking
 session_start();
+// Include database configuration
 require_once 'config/db_connection.php';
 
-// Check if user is logged in
+// Security Check:
+// 1. Verify user authentication status
+// 2. Redirect unauthorized users to login page
+// 3. Exit script to prevent further execution
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
 
-// Fetch all recipes with their ingredients
+// Database Operations and Error Handling
 try {
-    // Get all recipes
+    // Security: Use prepared statement for recipe retrieval
+    // 1. Prevents SQL injection
+    // 2. Orders by date to show newest recipes first
     $stmt = $conn->prepare("SELECT * FROM tbl_recipe ORDER BY recipe_dateCreated DESC");
     $stmt->execute();
     $recipes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Get ingredients for each recipe
+    // Initialize array to store recipe ingredients
     $recipe_ingredients = [];
+    
+    // Security: Prepare statement once, reuse for each recipe
+    // This is more efficient and maintains security
     $stmt = $conn->prepare("SELECT * FROM tbl_ingredients WHERE recipe_id = ?");
     
+    // Fetch ingredients for each recipe
+    // Uses prepared statement with bound parameters for security
     foreach ($recipes as $recipe) {
         $stmt->execute([$recipe['recipe_id']]);
         $recipe_ingredients[$recipe['recipe_id']] = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
 } catch(PDOException $e) {
+    // Exception Handling:
+    // 1. Catch database-related errors
+    // 2. Store error message for display
+    // 3. Note: In production, consider logging errors instead of displaying them
     $error_message = "Error: " . $e->getMessage();
 }
 ?>
