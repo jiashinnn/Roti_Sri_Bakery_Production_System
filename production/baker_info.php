@@ -8,6 +8,19 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+// Handle delete request
+if (isset($_GET['delete_id'])) {
+    $delete_id = $_GET['delete_id'];
+    try {
+        $stmt = $conn->prepare("DELETE FROM tbl_users WHERE user_id = :delete_id");
+        $stmt->execute([':delete_id' => $delete_id]);
+        header("Location: baker_info.php");
+        exit();
+    } catch (PDOException $e) {
+        $error_message = "Error: " . $e->getMessage();
+    }
+}
+
 try {
     // Get only bakers
     $stmt = $conn->query("SELECT 
@@ -87,11 +100,12 @@ try {
                                 </div>
                             </div>
                             <div class="baker-actions">
-                                <button class="edit-btn" title="Edit">
+                                <button class="edit-btn" title="Edit" 
+                                        onclick="window.location.href='edit_baker.php?edit_id=<?php echo $baker['user_id']; ?>'">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <button class="delete-btn" title="Delete" 
-                                        onclick="deleteBaker(<?php echo $baker['user_id']; ?>)">
+                                        onclick="if(confirm('Are you sure you want to delete this baker?')) { window.location.href='baker_info.php?delete_id=<?php echo $baker['user_id']; ?>' }">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -105,4 +119,4 @@ try {
     <script src="js/dashboard.js"></script>
     <script src="js/baker.js"></script>
 </body>
-</html> 
+</html>
